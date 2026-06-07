@@ -73,7 +73,7 @@ export default function OrdensServico() {
       return;
     }
 
-    setOrdens((data as OrdemServico[]) || []);
+  setOrdens((data as unknown as OrdemServico[]) || []);
   }
 
   async function salvarOS() {
