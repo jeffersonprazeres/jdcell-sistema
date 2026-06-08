@@ -126,15 +126,18 @@ export default function OrdensServico() {
 ) {
   const telefoneLimpo = telefone.replace(/\D/g, "");
 
-  const mensagem = `Olá ${nome}, aqui é da JD CELL.
+  const mensagem = encodeURIComponent(
+    `Olá ${nome}, aqui é da JD CELL.
 
 Sua Ordem de Serviço Nº ${numeroOS} está com status: ${status}.
 
-Qualquer dúvida estamos à disposição.`;
+Qualquer dúvida estamos à disposição.`
+  );
 
-  window.open(
-    `https://wa.me/55${telefoneLimpo}?text=${encodeURIComponent(mensagem)}`,
-    "_blank"
+  const url = `https://api.whatsapp.com/send?phone=55${telefoneLimpo}&text=${mensagem}`;
+
+  window.open(url, "_blank");
+}
   );
 }
 
