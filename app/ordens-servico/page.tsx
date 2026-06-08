@@ -73,7 +73,7 @@ export default function OrdensServico() {
       return;
     }
 
-  setOrdens((data as unknown as OrdemServico[]) || []);
+    setOrdens((data as unknown as OrdemServico[]) || []);
   }
 
   async function salvarOS() {
@@ -118,28 +118,26 @@ export default function OrdensServico() {
     carregarOrdens();
   }
 
- function abrirWhatsApp(
-  telefone: string,
-  nome: string,
-  numeroOS: number,
-  status: string
-) {
-  const telefoneLimpo = telefone.replace(/\D/g, "");
+  function abrirWhatsApp(
+    telefone: string,
+    nome: string,
+    numeroOS: number,
+    status: string
+  ) {
+    const telefoneLimpo = telefone.replace(/\D/g, "");
 
-  const mensagem = encodeURIComponent(
-    `Olá ${nome}, aqui é da JD CELL.
+    const mensagem = encodeURIComponent(
+      `Olá ${nome}, aqui é da JD CELL.
 
 Sua Ordem de Serviço Nº ${numeroOS} está com status: ${status}.
 
 Qualquer dúvida estamos à disposição.`
-  );
+    );
 
-  const url = `https://api.whatsapp.com/send?phone=55${telefoneLimpo}&text=${mensagem}`;
+    const url = `https://api.whatsapp.com/send?phone=55${telefoneLimpo}&text=${mensagem}`;
 
-  window.open(url, "_blank");
-}
-  );
-}
+    window.open(url, "_blank");
+  }
 
   function imprimirOS(ordem: OrdemServico) {
     const janela = window.open("", "_blank");
@@ -209,7 +207,9 @@ Qualquer dúvida estamos à disposição.`
             <h2>Ordem de Serviço Nº ${ordem.numero_os}</h2>
 
             <div class="box">
-              <strong>Cliente:</strong> ${ordem.clientes?.nome || "Sem cliente"}<br/>
+              <strong>Cliente:</strong> ${
+                ordem.clientes?.nome || "Sem cliente"
+              }<br/>
               <strong>Telefone:</strong> ${ordem.clientes?.telefone || ""}
             </div>
 
@@ -219,7 +219,9 @@ Qualquer dúvida estamos à disposição.`
             </div>
 
             <div class="box">
-              <strong>Valor do Serviço:</strong> R$ ${Number(ordem.valor_final || 0).toFixed(2)}<br/>
+              <strong>Valor do Serviço:</strong> R$ ${Number(
+                ordem.valor_final || 0
+              ).toFixed(2)}<br/>
               <strong>Garantia:</strong> 90 dias
             </div>
 
@@ -428,14 +430,14 @@ Qualquer dúvida estamos à disposição.`
 
               {ordem.clientes?.telefone && (
                 <button
-                 onClick={() =>
-  abrirWhatsApp(
-    ordem.clientes!.telefone,
-    ordem.clientes!.nome,
-    ordem.numero_os,
-    ordem.status
-  )
-}
+                  onClick={() =>
+                    abrirWhatsApp(
+                      ordem.clientes!.telefone,
+                      ordem.clientes!.nome,
+                      ordem.numero_os,
+                      ordem.status
+                    )
+                  }
                   style={{
                     background: "#25D366",
                     color: "#fff",
