@@ -118,26 +118,30 @@ export default function OrdensServico() {
     carregarOrdens();
   }
 
-  function abrirWhatsApp(
-    telefone: string,
-    nome: string,
-    numeroOS: number,
-    status: string
-  ) {
-    const telefoneLimpo = telefone.replace(/\D/g, "");
+ function abrirWhatsApp(
+  telefone: string,
+  nome: string,
+  numeroOS: number,
+  status: string
+) {
+  let telefoneLimpo = telefone.replace(/\D/g, "");
 
-    const mensagem = encodeURIComponent(
-      `Olá ${nome}, aqui é da JD CELL.
+  if (!telefoneLimpo.startsWith("55")) {
+    telefoneLimpo = "55" + telefoneLimpo;
+  }
+
+  const mensagem = `Olá ${nome}, aqui é da JD CELL.
 
 Sua Ordem de Serviço Nº ${numeroOS} está com status: ${status}.
 
-Qualquer dúvida estamos à disposição.`
-    );
+Qualquer dúvida estamos à disposição.`;
 
-    const url = `https://api.whatsapp.com/send?phone=55${telefoneLimpo}&text=${mensagem}`;
+const texto = encodeURIComponent(mensagem);
 
-    window.open(url, "_blank");
-  }
+window.open(
+  `https://api.whatsapp.com/send?phone=${telefoneLimpo}&text=${texto}`,
+  "_blank"
+);}
 
   function imprimirOS(ordem: OrdemServico) {
     const janela = window.open("", "_blank");
