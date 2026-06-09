@@ -461,26 +461,147 @@ window.open(
               <p>
                 Aparelho: {ordem.marca} {ordem.modelo}
               </p>
-              <p>Status: {ordem.status}</p>
-              <p>
-                Valor final: R$ {Number(ordem.valor_final || 0).toFixed(2)}
-              </p>
-              <p>Lucro: R$ {lucroOS.toFixed(2)}</p>
+<label>Status:</label>
+
+<select
+  value={ordem.status}
+  onChange={async (e) => {
+    const novoStatus = e.target.value;
+
+    const { error } = await supabase
+      .from("ordens_servico")
+      .update({ status: novoStatus })
+      .eq("id", ordem.id);
+
+    if (error) {
+      alert("Erro ao atualizar status: " + error.message);
+      return;
+    }
+
+    alert("Status atualizado com sucesso!");
+    carregarOrdens();
+  }}
+  style={{
+    width: "220px",
+    padding: "8px",
+    display: "block",
+    marginBottom: "10px",
+    color: "#000",
+  }}
+>
+  <option>Recebido</option>
+  <option>Em análise</option>
+  <option>Aguardando aprovação</option>
+  <option>Em reparo</option>
+  <option>Finalizado</option>
+  <option>Entregue</option>
+</select>              
+                <label>Valor da peça:</label>
+<input
+  type="number"
+  defaultValue={ordem.custo_pecas}
+  onBlur={async (e) => {
+    const novoCusto = Number(e.target.value || 0);
+
+    const { error } = await supabase
+      .from("ordens_servico")
+      .update({ custo_pecas: novoCusto })
+      .eq("id", ordem.id);
+
+    if (error) {
+      alert("Erro ao atualizar valor da peça: " + error.message);
+      return;
+    }
+
+    carregarOrdens();
+  }}
+  style={{
+    width: "220px",
+    padding: "8px",
+    display: "block",
+    marginBottom: "10px",
+    color: "#000",
+  }}
+/>
+
+<label>Valor final do serviço:</label>
+<input
+  type="number"
+  defaultValue={ordem.valor_final}
+  onBlur={async (e) => {
+    const novoValor = Number(e.target.value || 0);
+
+    const { error } = await supabase
+      .from("ordens_servico")
+      .update({ valor_final: novoValor })
+      .eq("id", ordem.id);
+
+    if (error) {
+      alert("Erro ao atualizar valor final: " + error.message);
+      return;
+    }
+
+    carregarOrdens();
+  }}
+  style={{
+    width: "220px",
+    padding: "8px",
+    display: "block",
+    marginBottom: "10px",
+    color: "#000",
+  }}
+/>
+
+<p>Lucro: R$ {lucroOS.toFixed(2)}</p>
 
               <button
-                onClick={() => imprimirOS(ordem)}
-                style={{
-                  background: "#22c55e",
-                  color: "#fff",
-                  border: "none",
-                  padding: "10px 15px",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  marginTop: "10px",
-                }}
-              >
-                Imprimir OS
-              </button>
+  onClick={() => imprimirOS(ordem)}
+  style={{
+    background: "#22c55e",
+    color: "#fff",
+    border: "none",
+    padding: "10px 15px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    marginTop: "10px",
+  }}
+>
+  Imprimir OS
+</button>
+
+<button
+  onClick={async () => {
+    const confirmar = confirm(`Deseja excluir a OS #${ordem.numero_os}?`);
+
+    if (!confirmar) return;
+
+    const { error } = await supabase
+      .from("ordens_servico")
+      .delete()
+      .eq("id", ordem.id);
+
+    if (error) {
+      alert("Erro ao excluir OS: " + error.message);
+      return;
+    }
+
+    alert("OS excluída com sucesso!");
+    carregarOrdens();
+  }}
+  style={{
+    background: "#ef4444",
+    color: "#fff",
+    border: "none",
+    padding: "10px 15px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    marginTop: "10px",
+    marginLeft: "10px",
+  }}
+>
+  Excluir OS
+</button>
+                
             </div>
           );
         })}
