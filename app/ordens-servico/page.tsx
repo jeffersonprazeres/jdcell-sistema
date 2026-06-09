@@ -37,7 +37,7 @@ export default function OrdensServico() {
   const [custoPecas, setCustoPecas] = useState("");
   const [valorFinal, setValorFinal] = useState("");
   const [mensagem, setMensagem] = useState("");
-
+const [busca, setBusca] = useState("");
   const lucro = Number(valorFinal || 0) - Number(custoPecas || 0);
 
   async function carregarClientes() {
@@ -251,7 +251,17 @@ window.open(
     carregarClientes();
     carregarOrdens();
   }, []);
+const ordensFiltradas = ordens.filter((ordem) => {
+  const textoBusca = busca.toLowerCase();
 
+  return (
+    String(ordem.numero_os).includes(textoBusca) ||
+    ordem.clientes?.nome?.toLowerCase().includes(textoBusca) ||
+    ordem.clientes?.telefone?.includes(textoBusca) ||
+    ordem.marca?.toLowerCase().includes(textoBusca) ||
+    ordem.modelo?.toLowerCase().includes(textoBusca)
+  );
+});
   return (
     <main
       style={{
@@ -411,12 +421,24 @@ window.open(
       <hr style={{ margin: "30px 0", borderColor: "#334155" }} />
 
       <h2>Ordens cadastradas</h2>
-
+<input
+  type="text"
+  placeholder="Pesquisar por OS, cliente, telefone ou aparelho"
+  value={busca}
+  onChange={(e) => setBusca(e.target.value)}
+  style={{
+    width: "400px",
+    padding: "10px",
+    marginTop: "10px",
+    marginBottom: "20px",
+    display: "block",
+    color: "#000",
+  }}
+/>
       <div style={{ marginTop: "15px" }}>
-        {ordens.length === 0 && <p>Nenhuma OS cadastrada ainda.</p>}
-
-        {ordens.map((ordem) => {
-          const lucroOS =
+{ordensFiltradas.length === 0 && <p>Nenhuma OS encontrada.</p>}
+{ordensFiltradas.map((ordem) => {
+            const lucroOS =
             Number(ordem.valor_final || 0) - Number(ordem.custo_pecas || 0);
 
           return (
