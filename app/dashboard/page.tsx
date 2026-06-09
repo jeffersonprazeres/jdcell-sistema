@@ -7,7 +7,10 @@ export default function Dashboard() {
   const [clientes, setClientes] = useState(0);
   const [ordens, setOrdens] = useState(0);
   const [osAbertas, setOsAbertas] = useState(0);
+  const [osEntregues, setOsEntregues] = useState(0);
+  const [faturamentoTotal, setFaturamentoTotal] = useState(0);
   const [lucroTotal, setLucroTotal] = useState(0);
+  const [saldoCaixa, setSaldoCaixa] = useState(0);
 
   async function carregarDados() {
     const { count: totalClientes } = await supabase
@@ -18,13 +21,27 @@ export default function Dashboard() {
       .from("ordens_servico")
       .select("status, valor_final, custo_pecas");
 
+    const { data: listaCaixa } = await supabase
+      .from("caixa")
+      .select("tipo, valor");
+
     setClientes(totalClientes || 0);
     setOrdens(listaOrdens?.length || 0);
 
     const abertas =
-      listaOrdens?.filter((os) => os.status !== "Entregue").length || 0;
+      listaOrdens?.filter(
+        (os) => os.status !== "Entregue" && os.status !== "Finalizado"
+      ).length || 0;
 
-    setOsAbertas(abertas);
+    const entregues =
+      listaOrdens?.filter(
+        (os) => os.status === "Entregue" || os.status === "Finalizado"
+      ).length || 0;
+
+    const faturamento =
+      listaOrdens?.reduce((total, os) => {
+        return total + Number(os.valor_final || 0);
+      }, 0) || 0;
 
     const lucro =
       listaOrdens?.reduce((total, os) => {
@@ -34,7 +51,21 @@ export default function Dashboard() {
         );
       }, 0) || 0;
 
+    const entradas =
+      listaCaixa
+        ?.filter((mov) => mov.tipo === "Entrada")
+        .reduce((total, mov) => total + Number(mov.valor || 0), 0) || 0;
+
+    const saidas =
+      listaCaixa
+        ?.filter((mov) => mov.tipo === "Saída")
+        .reduce((total, mov) => total + Number(mov.valor || 0), 0) || 0;
+
+    setOsAbertas(abertas);
+    setOsEntregues(entregues);
+    setFaturamentoTotal(faturamento);
     setLucroTotal(lucro);
+    setSaldoCaixa(entradas - saidas);
   }
 
   useEffect(() => {
@@ -51,7 +82,7 @@ export default function Dashboard() {
       }}
     >
       <h1 style={{ color: "#22c55e" }}>JD CELL</h1>
-      <h2>Painel Principal</h2>
+      <h2>Dashboard Financeiro</h2>
 
       <div
         style={{
@@ -67,7 +98,7 @@ export default function Dashboard() {
         </div>
 
         <div style={card}>
-          <h3>Ordens de Serviço</h3>
+          <h3>Total de OS</h3>
           <strong style={numero}>{ordens}</strong>
         </div>
 
@@ -77,8 +108,23 @@ export default function Dashboard() {
         </div>
 
         <div style={card}>
+          <h3>OS Finalizadas</h3>
+          <strong style={numero}>{osEntregues}</strong>
+        </div>
+
+        <div style={card}>
+          <h3>Faturamento Total</h3>
+          <strong style={numero}>R$ {faturamentoTotal.toFixed(2)}</strong>
+        </div>
+
+        <div style={card}>
           <h3>Lucro Total</h3>
           <strong style={numero}>R$ {lucroTotal.toFixed(2)}</strong>
+        </div>
+
+        <div style={card}>
+          <h3>Saldo do Caixa</h3>
+          <strong style={numero}>R$ {saldoCaixa.toFixed(2)}</strong>
         </div>
       </div>
 
@@ -87,33 +133,21 @@ export default function Dashboard() {
           Clientes
         </button>
 
-        <button
-          onClick={() => (window.location.href = "/ordens-servico")}
-          style={botao}
-        >
+        <button onClick={() => (window.location.href = "/ordens-servico")} style={botao}>
           Ordens de Serviço
         </button>
 
-        <button
-  onClick={() => (window.location.href = "/estoque")}
-  style={botao}
->
-  Estoque
-</button>
+        <button onClick={() => (window.location.href = "/estoque")} style={botao}>
+          Estoque
+        </button>
 
-<button
-  onClick={() => (window.location.href = "/caixa")}
-  style={botao}
->
-  Caixa
-</button>
+        <button onClick={() => (window.location.href = "/caixa")} style={botao}>
+          Caixa
+        </button>
 
-<button
-  onClick={() => (window.location.href = "/relatorios")}
-  style={botao}
->
-  Relatórios
-</button>
+        <button onClick={() => (window.location.href = "/relatorios")} style={botao}>
+          Relatórios
+        </button>
       </div>
     </main>
   );
