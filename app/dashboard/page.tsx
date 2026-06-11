@@ -3,6 +3,17 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
+type Ordem = {
+  status: string;
+  valor_final: number;
+  custo_pecas: number;
+};
+
+type Caixa = {
+  tipo: string;
+  valor: number;
+};
+
 export default function Dashboard() {
   const [clientes, setClientes] = useState(0);
   const [ordens, setOrdens] = useState(0);
@@ -11,6 +22,7 @@ export default function Dashboard() {
   const [faturamentoTotal, setFaturamentoTotal] = useState(0);
   const [lucroTotal, setLucroTotal] = useState(0);
   const [saldoCaixa, setSaldoCaixa] = useState(0);
+  const [statusResumo, setStatusResumo] = useState<Record<string, number>>({});
 
   async function carregarDados() {
     const { count: totalClientes } = await supabase
@@ -25,52 +37,57 @@ export default function Dashboard() {
       .from("caixa")
       .select("tipo, valor");
 
+    const ordensLista = (listaOrdens as Ordem[]) || [];
+    const caixaLista = (listaCaixa as Caixa[]) || [];
+
     setClientes(totalClientes || 0);
-    setOrdens(listaOrdens?.length || 0);
+    setOrdens(ordensLista.length);
 
-    const abertas =
-      listaOrdens?.filter(
-        (os) => os.status !== "Entregue" && os.status !== "Finalizado"
-      ).length || 0;
+    const abertas = ordensLista.filter(
+      (os) => os.status !== "Entregue" && os.status !== "Finalizado"
+    ).length;
 
-    const entregues =
-      listaOrdens?.filter(
-        (os) => os.status === "Entregue" || os.status === "Finalizado"
-      ).length || 0;
+    const entregues = ordensLista.filter(
+      (os) => os.status === "Entregue" || os.status === "Finalizado"
+    ).length;
 
-    const faturamento =
-      listaOrdens?.reduce((total, os) => {
-        return total + Number(os.valor_final || 0);
-      }, 0) || 0;
+    const faturamento = ordensLista.reduce((total, os) => {
+      return total + Number(os.valor_final || 0);
+    }, 0);
 
-    const lucro =
-      listaOrdens?.reduce((total, os) => {
-        return (
-          total +
-          (Number(os.valor_final || 0) - Number(os.custo_pecas || 0))
-        );
-      }, 0) || 0;
+    const lucro = ordensLista.reduce((total, os) => {
+      return total + (Number(os.valor_final || 0) - Number(os.custo_pecas || 0));
+    }, 0);
 
-    const entradas =
-      listaCaixa
-        ?.filter((mov) => mov.tipo === "Entrada")
-        .reduce((total, mov) => total + Number(mov.valor || 0), 0) || 0;
+    const entradas = caixaLista
+      .filter((mov) => mov.tipo === "Entrada")
+      .reduce((total, mov) => total + Number(mov.valor || 0), 0);
 
-    const saidas =
-      listaCaixa
-        ?.filter((mov) => mov.tipo === "Saída")
-        .reduce((total, mov) => total + Number(mov.valor || 0), 0) || 0;
+    const saidas = caixaLista
+      .filter((mov) => mov.tipo === "Saída")
+      .reduce((total, mov) => total + Number(mov.valor || 0), 0);
+
+    const resumo: Record<string, number> = {};
+
+    ordensLista.forEach((os) => {
+      const status = os.status || "Sem status";
+      resumo[status] = (resumo[status] || 0) + 1;
+    });
 
     setOsAbertas(abertas);
     setOsEntregues(entregues);
     setFaturamentoTotal(faturamento);
     setLucroTotal(lucro);
     setSaldoCaixa(entradas - saidas);
+    setStatusResumo(resumo);
   }
 
   useEffect(() => {
     carregarDados();
   }, []);
+
+  const maiorValor = Math.max(faturamentoTotal, lucroTotal, saldoCaixa, 1);
+  const maiorStatus = Math.max(...Object.values(statusResumo), 1);
 
   return (
     <main
@@ -84,14 +101,7 @@ export default function Dashboard() {
       <h1 style={{ color: "#22c55e" }}>JD CELL</h1>
       <h2>Dashboard Financeiro</h2>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "15px",
-          marginTop: "30px",
-        }}
-      >
+      <div style={gridCards}>
         <div style={card}>
           <h3>Clientes</h3>
           <strong style={numero}>{clientes}</strong>
@@ -112,19 +122,65 @@ export default function Dashboard() {
           <strong style={numero}>{osEntregues}</strong>
         </div>
 
-        <div style={card}>
+        <div style={cardDestaque}>
           <h3>Faturamento Total</h3>
           <strong style={numero}>R$ {faturamentoTotal.toFixed(2)}</strong>
         </div>
 
-        <div style={card}>
+        <div style={cardDestaque}>
           <h3>Lucro Total</h3>
           <strong style={numero}>R$ {lucroTotal.toFixed(2)}</strong>
         </div>
 
-        <div style={card}>
+        <div style={cardDestaque}>
           <h3>Saldo do Caixa</h3>
           <strong style={numero}>R$ {saldoCaixa.toFixed(2)}</strong>
+        </div>
+      </div>
+
+      <div style={gridGraficos}>
+        <div style={cardGrafico}>
+          <h3>Gráfico Financeiro</h3>
+
+          <Barra
+            titulo="Faturamento"
+            valor={faturamentoTotal}
+            maiorValor={maiorValor}
+          />
+
+          <Barra titulo="Lucro" valor={lucroTotal} maiorValor={maiorValor} />
+
+          <Barra
+            titulo="Caixa"
+            valor={saldoCaixa}
+            maiorValor={maiorValor}
+          />
+        </div>
+
+        <div style={cardGrafico}>
+          <h3>OS por Status</h3>
+
+          {Object.keys(statusResumo).length === 0 && (
+            <p>Nenhuma OS cadastrada ainda.</p>
+          )}
+
+          {Object.entries(statusResumo).map(([status, total]) => (
+            <div key={status} style={{ marginBottom: "15px" }}>
+              <div style={linhaGrafico}>
+                <span>{status}</span>
+                <strong>{total}</strong>
+              </div>
+
+              <div style={barraFundo}>
+                <div
+                  style={{
+                    ...barraPreenchida,
+                    width: `${(total / maiorStatus) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -133,7 +189,10 @@ export default function Dashboard() {
           Clientes
         </button>
 
-        <button onClick={() => (window.location.href = "/ordens-servico")} style={botao}>
+        <button
+          onClick={() => (window.location.href = "/ordens-servico")}
+          style={botao}
+        >
           Ordens de Serviço
         </button>
 
@@ -145,7 +204,10 @@ export default function Dashboard() {
           Caixa
         </button>
 
-        <button onClick={() => (window.location.href = "/relatorios")} style={botao}>
+        <button
+          onClick={() => (window.location.href = "/relatorios")}
+          style={botao}
+        >
           Relatórios
         </button>
       </div>
@@ -153,7 +215,61 @@ export default function Dashboard() {
   );
 }
 
+function Barra({
+  titulo,
+  valor,
+  maiorValor,
+}: {
+  titulo: string;
+  valor: number;
+  maiorValor: number;
+}) {
+  return (
+    <div style={{ marginBottom: "18px" }}>
+      <div style={linhaGrafico}>
+        <span>{titulo}</span>
+        <strong>R$ {valor.toFixed(2)}</strong>
+      </div>
+
+      <div style={barraFundo}>
+        <div
+          style={{
+            ...barraPreenchida,
+            width: `${(valor / maiorValor) * 100}%`,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+const gridCards = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "15px",
+  marginTop: "30px",
+};
+
+const gridGraficos = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+  gap: "20px",
+  marginTop: "30px",
+};
+
 const card = {
+  background: "#1e293b",
+  padding: "20px",
+  borderRadius: "12px",
+};
+
+const cardDestaque = {
+  background: "#064e3b",
+  padding: "20px",
+  borderRadius: "12px",
+};
+
+const cardGrafico = {
   background: "#1e293b",
   padding: "20px",
   borderRadius: "12px",
@@ -173,4 +289,24 @@ const botao = {
   cursor: "pointer",
   marginRight: "10px",
   marginBottom: "10px",
+};
+
+const linhaGrafico = {
+  display: "flex",
+  justifyContent: "space-between",
+  marginBottom: "6px",
+};
+
+const barraFundo = {
+  width: "100%",
+  height: "14px",
+  background: "#334155",
+  borderRadius: "999px",
+  overflow: "hidden",
+};
+
+const barraPreenchida = {
+  height: "100%",
+  background: "#22c55e",
+  borderRadius: "999px",
 };
