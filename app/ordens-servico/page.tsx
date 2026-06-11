@@ -9,6 +9,15 @@ type Cliente = {
   telefone: string;
 };
 
+type Produto = {
+  id: string;
+  nome: string;
+  fornecedor: string;
+  quantidade: number;
+  valor_custo: number;
+  valor_venda: number;
+};
+
 type OrdemServico = {
   id: string;
   numero_os: number;
@@ -17,6 +26,8 @@ type OrdemServico = {
   status: string;
   custo_pecas: number;
   valor_final: number;
+  produto_id: string | null;
+  produto_nome: string | null;
   created_at: string;
   clientes: {
     nome: string;
@@ -27,6 +38,7 @@ type OrdemServico = {
 export default function OrdensServico() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [ordens, setOrdens] = useState<OrdemServico[]>([]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
 
   const [clienteId, setClienteId] = useState("");
   const [marca, setMarca] = useState("");
@@ -34,10 +46,12 @@ export default function OrdensServico() {
   const [imei, setImei] = useState("");
   const [defeito, setDefeito] = useState("");
   const [status, setStatus] = useState("Recebido");
+  const [produtoId, setProdutoId] = useState("");
   const [custoPecas, setCustoPecas] = useState("");
   const [valorFinal, setValorFinal] = useState("");
   const [mensagem, setMensagem] = useState("");
-const [busca, setBusca] = useState("");
+  const [busca, setBusca] = useState("");
+
   const lucro = Number(valorFinal || 0) - Number(custoPecas || 0);
 
   async function carregarClientes() {
@@ -47,6 +61,20 @@ const [busca, setBusca] = useState("");
       .order("nome", { ascending: true });
 
     setClientes(data || []);
+  }
+
+  async function carregarProdutos() {
+    const { data, error } = await supabase
+      .from("estoque")
+      .select("id, nome, fornecedor, quantidade, valor_custo, valor_venda")
+      .order("nome", { ascending: true });
+
+    if (error) {
+      setMensagem("Erro ao carregar estoque: " + error.message);
+      return;
+    }
+
+    setProdutos((data as Produto[]) || []);
   }
 
   async function carregarOrdens() {
@@ -60,6 +88,8 @@ const [busca, setBusca] = useState("");
         status,
         custo_pecas,
         valor_final,
+        produto_id,
+        produto_nome,
         created_at,
         clientes (
           nome,
@@ -76,6 +106,16 @@ const [busca, setBusca] = useState("");
     setOrdens((data as unknown as OrdemServico[]) || []);
   }
 
+  function selecionarProduto(id: string) {
+    setProdutoId(id);
+
+    const produto = produtos.find((item) => String(item.id) === String(id));
+
+    if (produto) {
+      setCustoPecas(String(produto.valor_custo || 0));
+    }
+  }
+
   async function salvarOS() {
     setMensagem("");
 
@@ -83,6 +123,10 @@ const [busca, setBusca] = useState("");
       setMensagem("Selecione um cliente.");
       return;
     }
+
+    const produtoSelecionado = produtos.find(
+      (produto) => String(produto.id) === String(produtoId)
+    );
 
     const { error } = await supabase.from("ordens_servico").insert([
       {
@@ -92,6 +136,8 @@ const [busca, setBusca] = useState("");
         imei,
         defeito_relatado: defeito,
         status,
+        produto_id: produtoSelecionado ? String(produtoSelecionado.id) : null,
+        produto_nome: produtoSelecionado ? produtoSelecionado.nome : null,
         custo_pecas: Number(custoPecas || 0),
         valor_mao_obra: 0,
         valor_final: Number(valorFinal || 0),
@@ -112,36 +158,96 @@ const [busca, setBusca] = useState("");
     setImei("");
     setDefeito("");
     setStatus("Recebido");
+    setProdutoId("");
     setCustoPecas("");
     setValorFinal("");
 
     carregarOrdens();
+    carregarProdutos();
   }
 
- function abrirWhatsApp(
-  telefone: string,
-  nome: string,
-  numeroOS: number,
-  status: string
-) {
-  let telefoneLimpo = telefone.replace(/\D/g, "");
+  async function baixarEstoqueDaOS(ordem: OrdemServico) {
+    if (!ordem.produto_id) {
+      return;
+    }
 
-  if (!telefoneLimpo.startsWith("55")) {
-    telefoneLimpo = "55" + telefoneLimpo;
+    const { data: produto, error } = await supabase
+      .from("estoque")
+      .select("id, quantidade")
+      .eq("id", ordem.produto_id)
+      .single();
+
+    if (error || !produto) {
+      alert("Não foi possível localizar a peça no estoque.");
+      return;
+    }
+
+    const quantidadeAtual = Number(produto.quantidade || 0);
+
+    if (quantidadeAtual <= 0) {
+      alert("Atenção: essa peça já está sem estoque.");
+      return;
+    }
+
+    const { error: erroEstoque } = await supabase
+      .from("estoque")
+      .update({ quantidade: quantidadeAtual - 1 })
+      .eq("id", ordem.produto_id);
+
+    if (erroEstoque) {
+      alert("Erro ao baixar estoque: " + erroEstoque.message);
+      return;
+    }
+
+    carregarProdutos();
   }
 
-  const mensagem = `Olá ${nome}, aqui é da JD CELL.
+  async function atualizarStatusOS(ordem: OrdemServico, novoStatus: string) {
+    const statusAnterior = ordem.status;
+
+    const { error } = await supabase
+      .from("ordens_servico")
+      .update({ status: novoStatus })
+      .eq("id", ordem.id);
+
+    if (error) {
+      alert("Erro ao atualizar status: " + error.message);
+      return;
+    }
+
+    if (novoStatus === "Entregue" && statusAnterior !== "Entregue") {
+      await baixarEstoqueDaOS(ordem);
+    }
+
+    alert("Status atualizado com sucesso!");
+    carregarOrdens();
+  }
+
+  function abrirWhatsApp(
+    telefone: string,
+    nome: string,
+    numeroOS: number,
+    status: string
+  ) {
+    let telefoneLimpo = telefone.replace(/\D/g, "");
+
+    if (!telefoneLimpo.startsWith("55")) {
+      telefoneLimpo = "55" + telefoneLimpo;
+    }
+
+    const mensagem = `Olá ${nome}, aqui é da JD CELL.
 
 Sua Ordem de Serviço Nº ${numeroOS} está com status: ${status}.
 
 Qualquer dúvida estamos à disposição.`;
 
-const texto = encodeURIComponent(mensagem);
+    const texto = encodeURIComponent(mensagem);
 
-window.open(
-  `https://api.whatsapp.com/send?phone=${telefoneLimpo}&text=${texto}`,
-  "_blank"
-);}
+    window.open(
+      `https://api.whatsapp.com/send?phone=${telefoneLimpo}&text=${texto}`,
+      "_blank"
+    );
+  }
 
   function imprimirOS(ordem: OrdemServico) {
     const janela = window.open("", "_blank");
@@ -219,12 +325,16 @@ window.open(
 
             <div class="box">
               <strong>Aparelho:</strong> ${ordem.marca} ${ordem.modelo}<br/>
-              <strong>Status:</strong> ${ordem.status}
+              <strong>Status:</strong> ${ordem.status}<br/>
+              <strong>Peça usada:</strong> ${ordem.produto_nome || "Não informada"}
             </div>
 
             <div class="box">
               <strong>Valor do Serviço:</strong> R$ ${Number(
                 ordem.valor_final || 0
+              ).toFixed(2)}<br/>
+              <strong>Custo da peça:</strong> R$ ${Number(
+                ordem.custo_pecas || 0
               ).toFixed(2)}<br/>
               <strong>Garantia:</strong> 90 dias
             </div>
@@ -250,18 +360,22 @@ window.open(
   useEffect(() => {
     carregarClientes();
     carregarOrdens();
+    carregarProdutos();
   }, []);
-const ordensFiltradas = ordens.filter((ordem) => {
-  const textoBusca = busca.toLowerCase();
 
-  return (
-    String(ordem.numero_os).includes(textoBusca) ||
-    ordem.clientes?.nome?.toLowerCase().includes(textoBusca) ||
-    ordem.clientes?.telefone?.includes(textoBusca) ||
-    ordem.marca?.toLowerCase().includes(textoBusca) ||
-    ordem.modelo?.toLowerCase().includes(textoBusca)
-  );
-});
+  const ordensFiltradas = ordens.filter((ordem) => {
+    const textoBusca = busca.toLowerCase();
+
+    return (
+      String(ordem.numero_os).includes(textoBusca) ||
+      ordem.clientes?.nome?.toLowerCase().includes(textoBusca) ||
+      ordem.clientes?.telefone?.includes(textoBusca) ||
+      ordem.marca?.toLowerCase().includes(textoBusca) ||
+      ordem.modelo?.toLowerCase().includes(textoBusca) ||
+      ordem.produto_nome?.toLowerCase().includes(textoBusca)
+    );
+  });
+
   return (
     <main
       style={{
@@ -299,13 +413,7 @@ const ordensFiltradas = ordens.filter((ordem) => {
         placeholder="Marca"
         value={marca}
         onChange={(e) => setMarca(e.target.value)}
-        style={{
-          width: "400px",
-          padding: "10px",
-          display: "block",
-          marginBottom: "10px",
-          color: "#000",
-        }}
+        style={input}
       />
 
       <input
@@ -313,13 +421,7 @@ const ordensFiltradas = ordens.filter((ordem) => {
         placeholder="Modelo"
         value={modelo}
         onChange={(e) => setModelo(e.target.value)}
-        style={{
-          width: "400px",
-          padding: "10px",
-          display: "block",
-          marginBottom: "10px",
-          color: "#000",
-        }}
+        style={input}
       />
 
       <input
@@ -327,13 +429,7 @@ const ordensFiltradas = ordens.filter((ordem) => {
         placeholder="IMEI"
         value={imei}
         onChange={(e) => setImei(e.target.value)}
-        style={{
-          width: "400px",
-          padding: "10px",
-          display: "block",
-          marginBottom: "10px",
-          color: "#000",
-        }}
+        style={input}
       />
 
       <textarea
@@ -369,18 +465,32 @@ const ordensFiltradas = ordens.filter((ordem) => {
         <option>Entregue</option>
       </select>
 
-      <input
-        type="number"
-        placeholder="Valor da peça"
-        value={custoPecas}
-        onChange={(e) => setCustoPecas(e.target.value)}
+      <select
+        value={produtoId}
+        onChange={(e) => selecionarProduto(e.target.value)}
         style={{
-          width: "400px",
+          width: "420px",
           padding: "10px",
           display: "block",
           marginBottom: "10px",
           color: "#000",
         }}
+      >
+        <option value="">Selecione uma peça do estoque</option>
+        {produtos.map((produto) => (
+          <option key={produto.id} value={produto.id}>
+            {produto.nome} | Qtd: {produto.quantidade} | Custo: R${" "}
+            {Number(produto.valor_custo || 0).toFixed(2)}
+          </option>
+        ))}
+      </select>
+
+      <input
+        type="number"
+        placeholder="Valor da peça"
+        value={custoPecas}
+        onChange={(e) => setCustoPecas(e.target.value)}
+        style={input}
       />
 
       <input
@@ -388,13 +498,7 @@ const ordensFiltradas = ordens.filter((ordem) => {
         placeholder="Valor final do serviço"
         value={valorFinal}
         onChange={(e) => setValorFinal(e.target.value)}
-        style={{
-          width: "400px",
-          padding: "10px",
-          display: "block",
-          marginBottom: "10px",
-          color: "#000",
-        }}
+        style={input}
       />
 
       <p>
@@ -421,24 +525,27 @@ const ordensFiltradas = ordens.filter((ordem) => {
       <hr style={{ margin: "30px 0", borderColor: "#334155" }} />
 
       <h2>Ordens cadastradas</h2>
-<input
-  type="text"
-  placeholder="Pesquisar por OS, cliente, telefone ou aparelho"
-  value={busca}
-  onChange={(e) => setBusca(e.target.value)}
-  style={{
-    width: "400px",
-    padding: "10px",
-    marginTop: "10px",
-    marginBottom: "20px",
-    display: "block",
-    color: "#000",
-  }}
-/>
+
+      <input
+        type="text"
+        placeholder="Pesquisar por OS, cliente, telefone, aparelho ou peça"
+        value={busca}
+        onChange={(e) => setBusca(e.target.value)}
+        style={{
+          width: "400px",
+          padding: "10px",
+          marginTop: "10px",
+          marginBottom: "20px",
+          display: "block",
+          color: "#000",
+        }}
+      />
+
       <div style={{ marginTop: "15px" }}>
-{ordensFiltradas.length === 0 && <p>Nenhuma OS encontrada.</p>}
-{ordensFiltradas.map((ordem) => {
-            const lucroOS =
+        {ordensFiltradas.length === 0 && <p>Nenhuma OS encontrada.</p>}
+
+        {ordensFiltradas.map((ordem) => {
+          const lucroOS =
             Number(ordem.valor_final || 0) - Number(ordem.custo_pecas || 0);
 
           return (
@@ -483,147 +590,137 @@ const ordensFiltradas = ordens.filter((ordem) => {
               <p>
                 Aparelho: {ordem.marca} {ordem.modelo}
               </p>
-<label>Status:</label>
 
-<select
-  value={ordem.status}
-  onChange={async (e) => {
-    const novoStatus = e.target.value;
+              <p>Peça usada: {ordem.produto_nome || "Não informada"}</p>
 
-    const { error } = await supabase
-      .from("ordens_servico")
-      .update({ status: novoStatus })
-      .eq("id", ordem.id);
+              <label>Status:</label>
 
-    if (error) {
-      alert("Erro ao atualizar status: " + error.message);
-      return;
-    }
+              <select
+                value={ordem.status}
+                onChange={(e) => atualizarStatusOS(ordem, e.target.value)}
+                style={{
+                  width: "220px",
+                  padding: "8px",
+                  display: "block",
+                  marginBottom: "10px",
+                  color: "#000",
+                }}
+              >
+                <option>Recebido</option>
+                <option>Em análise</option>
+                <option>Aguardando aprovação</option>
+                <option>Em reparo</option>
+                <option>Finalizado</option>
+                <option>Entregue</option>
+              </select>
 
-    alert("Status atualizado com sucesso!");
-    carregarOrdens();
-  }}
-  style={{
-    width: "220px",
-    padding: "8px",
-    display: "block",
-    marginBottom: "10px",
-    color: "#000",
-  }}
->
-  <option>Recebido</option>
-  <option>Em análise</option>
-  <option>Aguardando aprovação</option>
-  <option>Em reparo</option>
-  <option>Finalizado</option>
-  <option>Entregue</option>
-</select>              
-                <label>Valor da peça:</label>
-<input
-  type="number"
-  defaultValue={ordem.custo_pecas}
-  onBlur={async (e) => {
-    const novoCusto = Number(e.target.value || 0);
+              <label>Valor da peça:</label>
+              <input
+                type="number"
+                defaultValue={ordem.custo_pecas}
+                onBlur={async (e) => {
+                  const novoCusto = Number(e.target.value || 0);
 
-    const { error } = await supabase
-      .from("ordens_servico")
-      .update({ custo_pecas: novoCusto })
-      .eq("id", ordem.id);
+                  const { error } = await supabase
+                    .from("ordens_servico")
+                    .update({ custo_pecas: novoCusto })
+                    .eq("id", ordem.id);
 
-    if (error) {
-      alert("Erro ao atualizar valor da peça: " + error.message);
-      return;
-    }
+                  if (error) {
+                    alert("Erro ao atualizar valor da peça: " + error.message);
+                    return;
+                  }
 
-    carregarOrdens();
-  }}
-  style={{
-    width: "220px",
-    padding: "8px",
-    display: "block",
-    marginBottom: "10px",
-    color: "#000",
-  }}
-/>
+                  carregarOrdens();
+                }}
+                style={{
+                  width: "220px",
+                  padding: "8px",
+                  display: "block",
+                  marginBottom: "10px",
+                  color: "#000",
+                }}
+              />
 
-<label>Valor final do serviço:</label>
-<input
-  type="number"
-  defaultValue={ordem.valor_final}
-  onBlur={async (e) => {
-    const novoValor = Number(e.target.value || 0);
+              <label>Valor final do serviço:</label>
+              <input
+                type="number"
+                defaultValue={ordem.valor_final}
+                onBlur={async (e) => {
+                  const novoValor = Number(e.target.value || 0);
 
-    const { error } = await supabase
-      .from("ordens_servico")
-      .update({ valor_final: novoValor })
-      .eq("id", ordem.id);
+                  const { error } = await supabase
+                    .from("ordens_servico")
+                    .update({ valor_final: novoValor })
+                    .eq("id", ordem.id);
 
-    if (error) {
-      alert("Erro ao atualizar valor final: " + error.message);
-      return;
-    }
+                  if (error) {
+                    alert("Erro ao atualizar valor final: " + error.message);
+                    return;
+                  }
 
-    carregarOrdens();
-  }}
-  style={{
-    width: "220px",
-    padding: "8px",
-    display: "block",
-    marginBottom: "10px",
-    color: "#000",
-  }}
-/>
+                  carregarOrdens();
+                }}
+                style={{
+                  width: "220px",
+                  padding: "8px",
+                  display: "block",
+                  marginBottom: "10px",
+                  color: "#000",
+                }}
+              />
 
-<p>Lucro: R$ {lucroOS.toFixed(2)}</p>
+              <p>Lucro: R$ {lucroOS.toFixed(2)}</p>
 
               <button
-  onClick={() => imprimirOS(ordem)}
-  style={{
-    background: "#22c55e",
-    color: "#fff",
-    border: "none",
-    padding: "10px 15px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    marginTop: "10px",
-  }}
->
-  Imprimir OS
-</button>
+                onClick={() => imprimirOS(ordem)}
+                style={{
+                  background: "#22c55e",
+                  color: "#fff",
+                  border: "none",
+                  padding: "10px 15px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  marginTop: "10px",
+                }}
+              >
+                Imprimir OS
+              </button>
 
-<button
-  onClick={async () => {
-    const confirmar = confirm(`Deseja excluir a OS #${ordem.numero_os}?`);
+              <button
+                onClick={async () => {
+                  const confirmar = confirm(
+                    `Deseja excluir a OS #${ordem.numero_os}?`
+                  );
 
-    if (!confirmar) return;
+                  if (!confirmar) return;
 
-    const { error } = await supabase
-      .from("ordens_servico")
-      .delete()
-      .eq("id", ordem.id);
+                  const { error } = await supabase
+                    .from("ordens_servico")
+                    .delete()
+                    .eq("id", ordem.id);
 
-    if (error) {
-      alert("Erro ao excluir OS: " + error.message);
-      return;
-    }
+                  if (error) {
+                    alert("Erro ao excluir OS: " + error.message);
+                    return;
+                  }
 
-    alert("OS excluída com sucesso!");
-    carregarOrdens();
-  }}
-  style={{
-    background: "#ef4444",
-    color: "#fff",
-    border: "none",
-    padding: "10px 15px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    marginTop: "10px",
-    marginLeft: "10px",
-  }}
->
-  Excluir OS
-</button>
-                
+                  alert("OS excluída com sucesso!");
+                  carregarOrdens();
+                }}
+                style={{
+                  background: "#ef4444",
+                  color: "#fff",
+                  border: "none",
+                  padding: "10px 15px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  marginTop: "10px",
+                  marginLeft: "10px",
+                }}
+              >
+                Excluir OS
+              </button>
             </div>
           );
         })}
@@ -631,3 +728,11 @@ const ordensFiltradas = ordens.filter((ordem) => {
     </main>
   );
 }
+
+const input = {
+  width: "400px",
+  padding: "10px",
+  display: "block",
+  marginBottom: "10px",
+  color: "#000",
+};
