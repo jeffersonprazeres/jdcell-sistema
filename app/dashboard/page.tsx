@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [faturamentoTotal, setFaturamentoTotal] = useState(0);
   const [lucroTotal, setLucroTotal] = useState(0);
   const [saldoCaixa, setSaldoCaixa] = useState(0);
+  const [estoqueBaixo, setEstoqueBaixo] = useState(0);
   const [statusResumo, setStatusResumo] = useState<Record<string, number>>({});
 
   async function carregarDados() {
@@ -36,7 +37,26 @@ export default function Dashboard() {
     const { data: listaCaixa } = await supabase
       .from("caixa")
       .select("tipo, valor");
+const { data: listaEstoque } = await supabase
+  .from("estoque")
+  .select("quantidade");
+  const baixo =
+  listaEstoque?.filter((produto) => Number(produto.quantidade || 0) <= 2)
+    .length || 0;
 
+setEstoqueBaixo(baixo);
+<div
+  style={{
+    background: estoqueBaixo > 0 ? "#7f1d1d" : "#1e293b",
+    padding: "20px",
+    borderRadius: "12px",
+    cursor: "pointer",
+  }}
+  onClick={() => (window.location.href = "/estoque")}
+>
+  <h3>⚠️ Estoque Baixo</h3>
+  <strong style={numero}>{estoqueBaixo} produtos</strong>
+</div>
     const ordensLista = (listaOrdens as Ordem[]) || [];
     const caixaLista = (listaCaixa as Caixa[]) || [];
 
