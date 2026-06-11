@@ -92,7 +92,31 @@ export default function Estoque() {
       {mensagem && <p style={{ marginTop: "15px" }}>{mensagem}</p>}
 
       <hr style={{ margin: "30px 0", borderColor: "#334155" }} />
+<h2 style={{ color: "#facc15" }}>⚠️ Estoque baixo</h2>
 
+{produtos.filter((produto) => Number(produto.quantidade || 0) <= 2).length === 0 && (
+  <p>Nenhuma peça com estoque baixo.</p>
+)}
+
+{produtos
+  .filter((produto) => Number(produto.quantidade || 0) <= 2)
+  .map((produto) => (
+    <div
+      key={produto.id}
+      style={{
+        background: "#7f1d1d",
+        padding: "15px",
+        borderRadius: "10px",
+        marginBottom: "10px",
+      }}
+    >
+      <strong>{produto.nome}</strong>
+      <p>Quantidade atual: {produto.quantidade}</p>
+      <p>Fornecedor: {produto.fornecedor || "Não informado"}</p>
+    </div>
+  ))}
+
+<hr style={{ margin: "30px 0", borderColor: "#334155" }} />
       <h2>Peças cadastradas</h2>
 
       {produtos.length === 0 && <p>Nenhuma peça cadastrada ainda.</p>}
