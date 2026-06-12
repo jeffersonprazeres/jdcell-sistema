@@ -52,9 +52,9 @@ export default function RootLayout({
             src="/jdcell-logo.png"
             alt="JD CELL"
             style={{
-              width: "900px",
+              width: "1200px",
               maxWidth: "80vw",
-              opacity: 0.12,
+              opacity: 1,
             }}
           />
         </div>
