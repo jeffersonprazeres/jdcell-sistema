@@ -54,7 +54,7 @@ export default function RootLayout({
             style={{
               width: "1200px",
               maxWidth: "80vw",
-              opacity: 1,
+              opacity:0.9,
             }}
           />
         </div>
