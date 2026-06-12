@@ -40,15 +40,12 @@ export default function RootLayout({
         <div
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            inset: 0,
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
             pointerEvents: "none",
-            zIndex: 999,
+            zIndex: 1001,
           }}
         >
           <img
@@ -57,7 +54,7 @@ export default function RootLayout({
             style={{
               width: "900px",
               maxWidth: "80vw",
-              opacity: 0.5,
+              opacity: 0.12,
             }}
           />
         </div>
@@ -72,7 +69,7 @@ export default function RootLayout({
             alignItems: "center",
             gap: "15px",
             position: "relative",
-            zIndex: 1000,
+            zIndex: 1002,
           }}
         >
           <img
@@ -110,7 +107,7 @@ export default function RootLayout({
         <main
           style={{
             position: "relative",
-            zIndex: 1000,
+            zIndex: 1002,
           }}
         >
           {children}
