@@ -36,5 +36,16 @@ h3,
 p,
 label,
 strong {
-  color: #f8fafc;
+  color: #f8fafc;body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("/jdcell-logo.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 750px;
+opacity: 0.20;
+  pointer-events: none;
+  z-index: 9999;
+}
 }

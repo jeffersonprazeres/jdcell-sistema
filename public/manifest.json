@@ -1,0 +1,21 @@
+{
+  "name": "JD CELL Sistema",
+  "short_name": "JD CELL",
+  "description": "Sistema de assistência técnica JD CELL",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "/jdcell-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/jdcell-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
