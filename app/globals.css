@@ -6,36 +6,17 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #0f172a;
-  color: #f8fafc;
-  font-family: Arial, Helvetica, sans-serif;
   min-height: 100vh;
-}
 
-/* MARCA D'ÁGUA JD CELL */
-
-body::before {
-  content: "";
-  position: fixed;
-  top: 55%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 800px;
-  height: 800px;
+  background-color: #0f172a;
   background-image: url("/jdcell-logo.png");
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  opacity: 0.15;
-  pointer-events: none;
-  z-index: 0;
-}
+  background-position: center center;
+  background-size: 700px;
+  background-attachment: fixed;
 
-/* CONTEÚDO ACIMA DA MARCA D'ÁGUA */
-
-body > * {
-  position: relative;
-  z-index: 1;
+  color: #f8fafc;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 input,
@@ -77,4 +58,23 @@ a {
 
 a:hover {
   opacity: 0.8;
+}
+
+/* Barra de rolagem */
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111827;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #22c55e;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #16a34a;
 }
