@@ -40,16 +40,22 @@ export default function RootLayout({
         <div
           style={{
             position: "fixed",
-            inset: 0,
-            backgroundImage: "url('/jdcell-logo.png')",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center",
-           backgroundSize: "800px",
-opacity: 0.15,
-            pointerEvents: "none",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
             zIndex: 0,
+            pointerEvents: "none",
           }}
-        />
+        >
+          <img
+            src="/jdcell-logo.png"
+            alt="JD CELL"
+            style={{
+              width: "750px",
+              opacity: 0.12,
+            }}
+          />
+        </div>
 
         {/* Cabeçalho */}
         <header
@@ -61,14 +67,14 @@ opacity: 0.15,
             alignItems: "center",
             gap: "15px",
             position: "relative",
-            zIndex: 1,
+            zIndex: 2,
           }}
         >
           <img
             src="/jdcell-logo.png"
             alt="JD CELL"
             style={{
-              height: "55px",
+              height: "60px",
               width: "auto",
             }}
           />
@@ -78,12 +84,18 @@ opacity: 0.15,
               style={{
                 margin: 0,
                 color: "#22c55e",
+                fontSize: "34px",
               }}
             >
               JD CELL
             </h2>
 
-            <small style={{ color: "#cbd5e1" }}>
+            <small
+              style={{
+                color: "#cbd5e1",
+                fontSize: "15px",
+              }}
+            >
               Assistência Técnica Especializada
             </small>
           </div>
