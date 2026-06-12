@@ -20,21 +20,46 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <body
-        className="min-h-full flex flex-col"
         style={{
           backgroundColor: "#0f172a",
           color: "#fff",
+          minHeight: "100vh",
+          margin: 0,
         }}
       >
+        {/* Marca d'água */}
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            pointerEvents: "none",
+            zIndex: 1,
+          }}
+        >
+          <img
+            src="/jdcell-logo.png"
+            alt="JD CELL"
+            style={{
+              width: "700px",
+              maxWidth: "80vw",
+              opacity: 0.08,
+            }}
+          />
+        </div>
+
+        {/* Cabeçalho */}
         <header
           style={{
             background: "#111827",
@@ -43,6 +68,8 @@ export default function RootLayout({
             display: "flex",
             alignItems: "center",
             gap: "15px",
+            position: "relative",
+            zIndex: 2,
           }}
         >
           <img
@@ -76,9 +103,11 @@ export default function RootLayout({
           </div>
         </header>
 
+        {/* Conteúdo */}
         <main
           style={{
-            flex: 1,
+            position: "relative",
+            zIndex: 2,
           }}
         >
           {children}
