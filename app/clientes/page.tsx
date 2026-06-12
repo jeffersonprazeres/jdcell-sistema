@@ -40,8 +40,8 @@ export default function Clientes() {
 
     const { error } = await supabase.from("clientes").insert([
       {
-        nome: nome,
-        telefone: telefone,
+        nome,
+        telefone,
       },
     ]);
 
@@ -64,7 +64,7 @@ export default function Clientes() {
     <main
       style={{
         minHeight: "100vh",
-        background: "#0f172a",
+        background: "transparent",
         color: "#fff",
         padding: "30px",
       }}
@@ -78,13 +78,7 @@ export default function Clientes() {
         placeholder="Nome do Cliente"
         value={nome}
         onChange={(e) => setNome(e.target.value)}
-        style={{
-          width: "300px",
-          padding: "10px",
-          marginBottom: "10px",
-          display: "block",
-          color: "#000",
-        }}
+        style={input}
       />
 
       <input
@@ -92,26 +86,10 @@ export default function Clientes() {
         placeholder="Telefone"
         value={telefone}
         onChange={(e) => setTelefone(e.target.value)}
-        style={{
-          width: "300px",
-          padding: "10px",
-          marginBottom: "10px",
-          display: "block",
-          color: "#000",
-        }}
+        style={input}
       />
 
-      <button
-        onClick={salvarCliente}
-        style={{
-          padding: "10px 20px",
-          background: "#22c55e",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-          cursor: "pointer",
-        }}
-      >
+      <button onClick={salvarCliente} style={botao}>
         Salvar Cliente
       </button>
 
@@ -125,15 +103,7 @@ export default function Clientes() {
         {clientes.length === 0 && <p>Nenhum cliente cadastrado ainda.</p>}
 
         {clientes.map((cliente) => (
-          <div
-            key={cliente.id}
-            style={{
-              background: "#1e293b",
-              padding: "15px",
-              borderRadius: "10px",
-              marginBottom: "10px",
-            }}
-          >
+          <div key={cliente.id} style={cardCliente}>
             <strong>{cliente.nome}</strong>
             <p>{cliente.telefone || "Sem telefone"}</p>
           </div>
@@ -142,3 +112,27 @@ export default function Clientes() {
     </main>
   );
 }
+
+const input = {
+  width: "300px",
+  padding: "10px",
+  marginBottom: "10px",
+  display: "block",
+  color: "#000",
+};
+
+const botao = {
+  padding: "10px 20px",
+  background: "#22c55e",
+  color: "#fff",
+  border: "none",
+  borderRadius: "8px",
+  cursor: "pointer",
+};
+
+const cardCliente = {
+  background: "rgba(30, 41, 59, 0.92)",
+  padding: "15px",
+  borderRadius: "10px",
+  marginBottom: "10px",
+};
