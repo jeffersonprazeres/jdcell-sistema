@@ -45,7 +45,7 @@ export default function RootLayout({
             justifyContent: "center",
             alignItems: "center",
             pointerEvents: "none",
-            zIndex: 1,
+            zIndex: 999,
           }}
         >
           <img
@@ -54,8 +54,8 @@ export default function RootLayout({
             style={{
               width: "700px",
               maxWidth: "80vw",
-              opacity: 0.08,
-            }}
+             opacity: 0.5,
+             width: "900px",            }}
           />
         </div>
 
