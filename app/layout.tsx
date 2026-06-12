@@ -33,8 +33,25 @@ export default function RootLayout({
         style={{
           background: "#0f172a",
           color: "#fff",
+          position: "relative",
         }}
       >
+        {/* Marca d'água */}
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundImage: "url('/jdcell-logo.png')",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+           backgroundSize: "800px",
+opacity: 0.15,
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
+
+        {/* Cabeçalho */}
         <header
           style={{
             background: "#111827",
@@ -43,6 +60,8 @@ export default function RootLayout({
             display: "flex",
             alignItems: "center",
             gap: "15px",
+            position: "relative",
+            zIndex: 1,
           }}
         >
           <img
@@ -70,7 +89,15 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main style={{ flex: 1 }}>{children}</main>
+        <main
+          style={{
+            flex: 1,
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
+          {children}
+        </main>
       </body>
     </html>
   );
