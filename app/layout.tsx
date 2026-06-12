@@ -40,7 +40,10 @@ export default function RootLayout({
         <div
           style={{
             position: "fixed",
-            inset: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -52,10 +55,10 @@ export default function RootLayout({
             src="/jdcell-logo.png"
             alt="JD CELL"
             style={{
-              width: "700px",
+              width: "900px",
               maxWidth: "80vw",
-             opacity: 0.5,
-             width: "900px",            }}
+              opacity: 0.5,
+            }}
           />
         </div>
 
@@ -69,7 +72,7 @@ export default function RootLayout({
             alignItems: "center",
             gap: "15px",
             position: "relative",
-            zIndex: 2,
+            zIndex: 1000,
           }}
         >
           <img
@@ -107,7 +110,7 @@ export default function RootLayout({
         <main
           style={{
             position: "relative",
-            zIndex: 2,
+            zIndex: 1000,
           }}
         >
           {children}
