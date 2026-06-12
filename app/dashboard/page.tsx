@@ -37,31 +37,21 @@ export default function Dashboard() {
     const { data: listaCaixa } = await supabase
       .from("caixa")
       .select("tipo, valor");
-const { data: listaEstoque } = await supabase
-  .from("estoque")
-  .select("quantidade");
-  const baixo =
-  listaEstoque?.filter((produto) => Number(produto.quantidade || 0) <= 2)
-    .length || 0;
 
-setEstoqueBaixo(baixo);
-<div
-  style={{
-    background: estoqueBaixo > 0 ? "#7f1d1d" : "#1e293b",
-    padding: "20px",
-    borderRadius: "12px",
-    cursor: "pointer",
-  }}
-  onClick={() => (window.location.href = "/estoque")}
->
-  <h3>⚠️ Estoque Baixo</h3>
-  <strong style={numero}>{estoqueBaixo} produtos</strong>
-</div>
+    const { data: listaEstoque } = await supabase
+      .from("estoque")
+      .select("quantidade");
+
     const ordensLista = (listaOrdens as Ordem[]) || [];
     const caixaLista = (listaCaixa as Caixa[]) || [];
 
+    const baixo =
+      listaEstoque?.filter((produto) => Number(produto.quantidade || 0) <= 2)
+        .length || 0;
+
     setClientes(totalClientes || 0);
     setOrdens(ordensLista.length);
+    setEstoqueBaixo(baixo);
 
     const abertas = ordensLista.filter(
       (os) => os.status !== "Entregue" && os.status !== "Finalizado"
@@ -113,7 +103,7 @@ setEstoqueBaixo(baixo);
     <main
       style={{
         minHeight: "100vh",
-        background: "#0f172a",
+        background: "transparent",
         color: "#fff",
         padding: "30px",
       }}
@@ -156,6 +146,19 @@ setEstoqueBaixo(baixo);
           <h3>Saldo do Caixa</h3>
           <strong style={numero}>R$ {saldoCaixa.toFixed(2)}</strong>
         </div>
+
+        <div
+          style={{
+            background: estoqueBaixo > 0 ? "#7f1d1d" : "#1e293b",
+            padding: "20px",
+            borderRadius: "12px",
+            cursor: "pointer",
+          }}
+          onClick={() => (window.location.href = "/estoque")}
+        >
+          <h3>⚠️ Estoque Baixo</h3>
+          <strong style={numero}>{estoqueBaixo} produtos</strong>
+        </div>
       </div>
 
       <div style={gridGraficos}>
@@ -170,11 +173,7 @@ setEstoqueBaixo(baixo);
 
           <Barra titulo="Lucro" valor={lucroTotal} maiorValor={maiorValor} />
 
-          <Barra
-            titulo="Caixa"
-            valor={saldoCaixa}
-            maiorValor={maiorValor}
-          />
+          <Barra titulo="Caixa" valor={saldoCaixa} maiorValor={maiorValor} />
         </div>
 
         <div style={cardGrafico}>
@@ -278,19 +277,19 @@ const gridGraficos = {
 };
 
 const card = {
-  background: "#1e293b",
+  background: "rgba(30, 41, 59, 0.92)",
   padding: "20px",
   borderRadius: "12px",
 };
 
 const cardDestaque = {
-  background: "#064e3b",
+  background: "rgba(6, 78, 59, 0.92)",
   padding: "20px",
   borderRadius: "12px",
 };
 
 const cardGrafico = {
-  background: "#1e293b",
+  background: "rgba(30, 41, 59, 0.92)",
   padding: "20px",
   borderRadius: "12px",
 };
