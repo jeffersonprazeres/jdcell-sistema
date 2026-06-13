@@ -4,7 +4,7 @@
   "description": "Sistema de assistência técnica JD CELL",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "bacgroundColor": "transparent",
   "theme_color": "#22c55e",
   "icons": [
     {
