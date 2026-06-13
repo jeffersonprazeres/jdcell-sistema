@@ -378,13 +378,13 @@ Qualquer dúvida estamos à disposição.`;
 
   return (
     <main
-      style={{
-        minHeight: "100vh",
-        background: "#0f172a",
-        color: "#fff",
-        padding: "30px",
-      }}
-    >
+  style={{
+    minHeight: "100vh",
+    background: "transparent",
+    color: "#fff",
+    padding: "30px",
+  }}
+>
       <h1>Ordem de Serviço</h1>
 
       <br />
@@ -552,7 +552,7 @@ Qualquer dúvida estamos à disposição.`;
             <div
               key={ordem.id}
               style={{
-                background: "#1e293b",
+                background: "rgba(30, 41, 59, 0.90)",
                 padding: "15px",
                 borderRadius: "10px",
                 marginBottom: "10px",

@@ -7,42 +7,28 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-
-  background-color: #0f172a;
-
   font-family: Arial, Helvetica, sans-serif;
   color: #f8fafc;
+  background-color: #0f172a;
 }
 
-/* ESCURECIMENTO LEVE DO FUNDO */
+/* MARCA D'ÁGUA GLOBAL */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.35);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* MARCA D'ÁGUA JD CELL */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-
   background-image: url("/jdcell-logo.png");
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 100vw 100vh;
-
   opacity: 0.35;
-
   pointer-events: none;
   z-index: 0;
 }
 
-/* TODO O SITE FICA ACIMA DA MARCA D'ÁGUA */
-body > * {
+/* CONTEÚDO ACIMA DA MARCA D'ÁGUA */
+body > header,
+body > main {
   position: relative;
   z-index: 1;
 }
@@ -59,7 +45,6 @@ textarea {
 input::placeholder,
 textarea::placeholder {
   color: #334155 !important;
-  opacity: 1;
 }
 
 button {
