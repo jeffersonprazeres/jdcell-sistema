@@ -29,7 +29,7 @@ window.location.href = "/dashboard";
     <main
       style={{
         minHeight: "100vh",
-        background: "#0f172a",
+        background: "transparent",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
