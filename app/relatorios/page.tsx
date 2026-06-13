@@ -293,7 +293,7 @@ export default function Relatorios() {
     <main
       style={{
         minHeight: "100vh",
-        background: "#0f172a",
+        background: "transparent",
         color: "#fff",
         padding: "30px",
       }}
@@ -373,13 +373,13 @@ export default function Relatorios() {
 }
 
 const card = {
-  background: "#1e293b",
+  background: "rgba(30, 41, 59, 0.90)",
   padding: "20px",
   borderRadius: "12px",
 };
 
 const cardAlerta = {
-  background: "#7f1d1d",
+  background: "rgba(127, 29, 29, 0.92)",
   padding: "20px",
   borderRadius: "12px",
 };

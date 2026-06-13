@@ -149,7 +149,10 @@ export default function Dashboard() {
 
         <div
           style={{
-            background: estoqueBaixo > 0 ? "#7f1d1d" : "#1e293b",
+            background:
+  estoqueBaixo > 0
+    ? "rgba(127, 29, 29, 0.92)"
+    : "rgba(30, 41, 59, 0.92)",
             padding: "20px",
             borderRadius: "12px",
             cursor: "pointer",
@@ -283,7 +286,7 @@ const card = {
 };
 
 const cardDestaque = {
-  background: "rgba(6, 78, 59, 0.92)",
+  background: "rgba(6, 78, 59, 0.85)",
   padding: "20px",
   borderRadius: "12px",
 };

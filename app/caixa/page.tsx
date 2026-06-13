@@ -77,10 +77,25 @@ export default function Caixa() {
   const saldo = totalEntradas - totalSaidas;
 
   return (
-    <main style={{ minHeight: "100vh", background: "#0f172a", color: "#fff", padding: "30px" }}>
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "transparent",
+        color: "#fff",
+        padding: "30px",
+      }}
+    >
       <h1>Caixa Financeiro</h1>
 
-      <div style={{ display: "flex", gap: "15px", marginTop: "20px", marginBottom: "25px", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "15px",
+          marginTop: "20px",
+          marginBottom: "25px",
+          flexWrap: "wrap",
+        }}
+      >
         <div style={card}>
           <h3>Entradas</h3>
           <strong style={numero}>R$ {totalEntradas.toFixed(2)}</strong>
@@ -102,7 +117,11 @@ export default function Caixa() {
         <option>Saída</option>
       </select>
 
-      <select value={categoria} onChange={(e) => setCategoria(e.target.value)} style={input}>
+      <select
+        value={categoria}
+        onChange={(e) => setCategoria(e.target.value)}
+        style={input}
+      >
         <option>Serviço</option>
         <option>Venda</option>
         <option>Compra</option>
@@ -138,7 +157,9 @@ export default function Caixa() {
 
       {movimentos.map((mov) => (
         <div key={mov.id} style={cardLista}>
-          <strong>{mov.tipo} - {mov.categoria}</strong>
+          <strong>
+            {mov.tipo} - {mov.categoria}
+          </strong>
           <p>{mov.descricao}</p>
           <p>Valor: R$ {Number(mov.valor || 0).toFixed(2)}</p>
         </div>
@@ -165,7 +186,7 @@ const botao = {
 };
 
 const card = {
-  background: "#1e293b",
+  background: "rgba(30, 41, 59, 0.90)",
   padding: "20px",
   borderRadius: "12px",
   minWidth: "200px",
@@ -177,7 +198,7 @@ const numero = {
 };
 
 const cardLista = {
-  background: "#1e293b",
+  background: "rgba(30, 41, 59, 0.90)",
   padding: "15px",
   borderRadius: "10px",
   marginBottom: "10px",

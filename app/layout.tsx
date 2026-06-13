@@ -32,7 +32,7 @@ export default function RootLayout({
         style={{
           margin: 0,
           minHeight: "100vh",
-          backgroundColor: "#0f172a",
+          backgroundColor: "transparent",
           color: "#fff",
         }}
       >
