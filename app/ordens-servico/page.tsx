@@ -269,7 +269,15 @@ Qualquer dúvida estamos à disposição.`;
           margin:40px;
           color:#000;
         }
-
+.watermark{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  opacity: 0.08;
+  z-index: -1;
+}
         .cabecalho{
           text-align:center;
           border-bottom:3px solid #22c55e;
@@ -333,7 +341,7 @@ Qualquer dúvida estamos à disposição.`;
     </head>
 
     <body>
-
+<img src="/jdcell-logo.png" class="watermark" />
       <div class="cabecalho">
         <img src="/jdcell-logo.png" class="logo" />
         <h1>JD CELL</h1>
