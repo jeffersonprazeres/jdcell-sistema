@@ -15,6 +15,7 @@ export default function Clientes() {
   const [telefone, setTelefone] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [busca, setBusca] = useState("");
 
   async function carregarClientes() {
     const { data, error } = await supabase
@@ -56,9 +57,52 @@ export default function Clientes() {
     carregarClientes();
   }
 
+  async function atualizarCliente(
+    id: string,
+    campo: "nome" | "telefone",
+    valor: string
+  ) {
+    const { error } = await supabase
+      .from("clientes")
+      .update({ [campo]: valor })
+      .eq("id", id);
+
+    if (error) {
+      alert("Erro ao atualizar cliente: " + error.message);
+      return;
+    }
+
+    carregarClientes();
+  }
+
+  async function excluirCliente(id: string, nomeCliente: string) {
+    const confirmar = confirm(`Deseja excluir o cliente "${nomeCliente}"?`);
+
+    if (!confirmar) return;
+
+    const { error } = await supabase.from("clientes").delete().eq("id", id);
+
+    if (error) {
+      alert("Erro ao excluir cliente: " + error.message);
+      return;
+    }
+
+    alert("Cliente excluído com sucesso!");
+    carregarClientes();
+  }
+
   useEffect(() => {
     carregarClientes();
   }, []);
+
+  const clientesFiltrados = clientes.filter((cliente) => {
+    const texto = busca.toLowerCase();
+
+    return (
+      cliente.nome?.toLowerCase().includes(texto) ||
+      cliente.telefone?.includes(texto)
+    );
+  });
 
   return (
     <main
@@ -99,13 +143,45 @@ export default function Clientes() {
 
       <h2>Clientes cadastrados</h2>
 
-      <div style={{ marginTop: "15px" }}>
-        {clientes.length === 0 && <p>Nenhum cliente cadastrado ainda.</p>}
+      <input
+        type="text"
+        placeholder="Pesquisar por nome ou telefone"
+        value={busca}
+        onChange={(e) => setBusca(e.target.value)}
+        style={input}
+      />
 
-        {clientes.map((cliente) => (
+      <div style={{ marginTop: "15px" }}>
+        {clientesFiltrados.length === 0 && <p>Nenhum cliente encontrado.</p>}
+
+        {clientesFiltrados.map((cliente) => (
           <div key={cliente.id} style={cardCliente}>
-            <strong>{cliente.nome}</strong>
-            <p>{cliente.telefone || "Sem telefone"}</p>
+            <label>Nome:</label>
+            <input
+              type="text"
+              defaultValue={cliente.nome}
+              onBlur={(e) =>
+                atualizarCliente(cliente.id, "nome", e.target.value)
+              }
+              style={inputPequeno}
+            />
+
+            <label>Telefone:</label>
+            <input
+              type="text"
+              defaultValue={cliente.telefone}
+              onBlur={(e) =>
+                atualizarCliente(cliente.id, "telefone", e.target.value)
+              }
+              style={inputPequeno}
+            />
+
+            <button
+              onClick={() => excluirCliente(cliente.id, cliente.nome)}
+              style={botaoExcluir}
+            >
+              Excluir cliente
+            </button>
           </div>
         ))}
       </div>
@@ -121,6 +197,14 @@ const input = {
   color: "#000",
 };
 
+const inputPequeno = {
+  width: "260px",
+  padding: "8px",
+  marginBottom: "10px",
+  display: "block",
+  color: "#000",
+};
+
 const botao = {
   padding: "10px 20px",
   background: "#22c55e",
@@ -128,6 +212,16 @@ const botao = {
   border: "none",
   borderRadius: "8px",
   cursor: "pointer",
+};
+
+const botaoExcluir = {
+  padding: "10px 15px",
+  background: "#ef4444",
+  color: "#fff",
+  border: "none",
+  borderRadius: "8px",
+  cursor: "pointer",
+  marginTop: "10px",
 };
 
 const cardCliente = {
