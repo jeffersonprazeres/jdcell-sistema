@@ -71,19 +71,60 @@ export default function Estoque() {
     carregarProdutos();
   }, []);
 
+  const produtosBaixo = produtos.filter(
+    (produto) => Number(produto.quantidade || 0) <= 2
+  );
+
   return (
-    <main style={{ minHeight: "100vh", background: "#0f172a", color: "#fff", padding: "30px" }}>
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "rgba(15, 23, 42, 0.35)",
+        color: "#fff",
+        padding: "30px",
+      }}
+    >
       <h1>Estoque de Peças</h1>
 
-      <input type="text" placeholder="Nome da peça" value={nome} onChange={(e) => setNome(e.target.value)} style={input} />
+      <input
+        type="text"
+        placeholder="Nome da peça"
+        value={nome}
+        onChange={(e) => setNome(e.target.value)}
+        style={input}
+      />
 
-      <input type="text" placeholder="Fornecedor" value={fornecedor} onChange={(e) => setFornecedor(e.target.value)} style={input} />
+      <input
+        type="text"
+        placeholder="Fornecedor"
+        value={fornecedor}
+        onChange={(e) => setFornecedor(e.target.value)}
+        style={input}
+      />
 
-      <input type="number" placeholder="Quantidade" value={quantidade} onChange={(e) => setQuantidade(e.target.value)} style={input} />
+      <input
+        type="number"
+        placeholder="Quantidade"
+        value={quantidade}
+        onChange={(e) => setQuantidade(e.target.value)}
+        style={input}
+      />
 
-      <input type="number" placeholder="Valor de custo" value={valorCusto} onChange={(e) => setValorCusto(e.target.value)} style={input} />
+      <input
+        type="number"
+        placeholder="Valor de custo"
+        value={valorCusto}
+        onChange={(e) => setValorCusto(e.target.value)}
+        style={input}
+      />
 
-      <input type="number" placeholder="Valor de venda" value={valorVenda} onChange={(e) => setValorVenda(e.target.value)} style={input} />
+      <input
+        type="number"
+        placeholder="Valor de venda"
+        value={valorVenda}
+        onChange={(e) => setValorVenda(e.target.value)}
+        style={input}
+      />
 
       <button onClick={salvarProduto} style={botao}>
         Salvar peça
@@ -92,31 +133,21 @@ export default function Estoque() {
       {mensagem && <p style={{ marginTop: "15px" }}>{mensagem}</p>}
 
       <hr style={{ margin: "30px 0", borderColor: "#334155" }} />
-<h2 style={{ color: "#facc15" }}>⚠️ Estoque baixo</h2>
 
-{produtos.filter((produto) => Number(produto.quantidade || 0) <= 2).length === 0 && (
-  <p>Nenhuma peça com estoque baixo.</p>
-)}
+      <h2 style={{ color: "#facc15" }}>⚠️ Estoque baixo</h2>
 
-{produtos
-  .filter((produto) => Number(produto.quantidade || 0) <= 2)
-  .map((produto) => (
-    <div
-      key={produto.id}
-      style={{
-        background: "#7f1d1d",
-        padding: "15px",
-        borderRadius: "10px",
-        marginBottom: "10px",
-      }}
-    >
-      <strong>{produto.nome}</strong>
-      <p>Quantidade atual: {produto.quantidade}</p>
-      <p>Fornecedor: {produto.fornecedor || "Não informado"}</p>
-    </div>
-  ))}
+      {produtosBaixo.length === 0 && <p>Nenhuma peça com estoque baixo.</p>}
 
-<hr style={{ margin: "30px 0", borderColor: "#334155" }} />
+      {produtosBaixo.map((produto) => (
+        <div key={produto.id} style={cardAlerta}>
+          <strong>{produto.nome}</strong>
+          <p>Quantidade atual: {produto.quantidade}</p>
+          <p>Fornecedor: {produto.fornecedor || "Não informado"}</p>
+        </div>
+      ))}
+
+      <hr style={{ margin: "30px 0", borderColor: "#334155" }} />
+
       <h2>Peças cadastradas</h2>
 
       {produtos.length === 0 && <p>Nenhuma peça cadastrada ainda.</p>}
@@ -158,7 +189,14 @@ const botao = {
 };
 
 const cardLista = {
-  background: "#1e293b",
+  background: "rgba(30, 41, 59, 0.90)",
+  padding: "15px",
+  borderRadius: "10px",
+  marginBottom: "10px",
+};
+
+const cardAlerta = {
+  background: "rgba(127, 29, 29, 0.92)",
   padding: "15px",
   borderRadius: "10px",
   marginBottom: "10px",
