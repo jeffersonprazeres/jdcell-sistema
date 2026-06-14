@@ -67,6 +67,45 @@ export default function Estoque() {
     carregarProdutos();
   }
 
+  async function atualizarProduto(
+    id: string,
+    campo: keyof Produto,
+    valor: string
+  ) {
+    const valorAtualizado =
+      campo === "quantidade" || campo === "valor_custo" || campo === "valor_venda"
+        ? Number(valor || 0)
+        : valor;
+
+    const { error } = await supabase
+      .from("estoque")
+      .update({ [campo]: valorAtualizado })
+      .eq("id", id);
+
+    if (error) {
+      alert("Erro ao atualizar peça: " + error.message);
+      return;
+    }
+
+    carregarProdutos();
+  }
+
+  async function excluirProduto(id: string, nomeProduto: string) {
+    const confirmar = confirm(`Deseja excluir a peça "${nomeProduto}"?`);
+
+    if (!confirmar) return;
+
+    const { error } = await supabase.from("estoque").delete().eq("id", id);
+
+    if (error) {
+      alert("Erro ao excluir peça: " + error.message);
+      return;
+    }
+
+    alert("Peça excluída com sucesso!");
+    carregarProdutos();
+  }
+
   useEffect(() => {
     carregarProdutos();
   }, []);
@@ -158,12 +197,64 @@ export default function Estoque() {
 
         return (
           <div key={produto.id} style={cardLista}>
-            <strong>{produto.nome}</strong>
-            <p>Fornecedor: {produto.fornecedor || "Não informado"}</p>
-            <p>Quantidade: {produto.quantidade}</p>
-            <p>Custo: R$ {Number(produto.valor_custo || 0).toFixed(2)}</p>
-            <p>Venda: R$ {Number(produto.valor_venda || 0).toFixed(2)}</p>
+            <label>Nome da peça:</label>
+            <input
+              type="text"
+              defaultValue={produto.nome}
+              onBlur={(e) =>
+                atualizarProduto(produto.id, "nome", e.target.value)
+              }
+              style={inputPequeno}
+            />
+
+            <label>Fornecedor:</label>
+            <input
+              type="text"
+              defaultValue={produto.fornecedor}
+              onBlur={(e) =>
+                atualizarProduto(produto.id, "fornecedor", e.target.value)
+              }
+              style={inputPequeno}
+            />
+
+            <label>Quantidade:</label>
+            <input
+              type="number"
+              defaultValue={produto.quantidade}
+              onBlur={(e) =>
+                atualizarProduto(produto.id, "quantidade", e.target.value)
+              }
+              style={inputPequeno}
+            />
+
+            <label>Valor de custo:</label>
+            <input
+              type="number"
+              defaultValue={produto.valor_custo}
+              onBlur={(e) =>
+                atualizarProduto(produto.id, "valor_custo", e.target.value)
+              }
+              style={inputPequeno}
+            />
+
+            <label>Valor de venda:</label>
+            <input
+              type="number"
+              defaultValue={produto.valor_venda}
+              onBlur={(e) =>
+                atualizarProduto(produto.id, "valor_venda", e.target.value)
+              }
+              style={inputPequeno}
+            />
+
             <p>Lucro por unidade: R$ {lucroUnidade.toFixed(2)}</p>
+
+            <button
+              onClick={() => excluirProduto(produto.id, produto.nome)}
+              style={botaoExcluir}
+            >
+              Excluir peça
+            </button>
           </div>
         );
       })}
@@ -179,6 +270,14 @@ const input = {
   color: "#000",
 };
 
+const inputPequeno = {
+  width: "260px",
+  padding: "8px",
+  display: "block",
+  marginBottom: "10px",
+  color: "#000",
+};
+
 const botao = {
   background: "#22c55e",
   color: "#fff",
@@ -186,6 +285,16 @@ const botao = {
   padding: "12px 20px",
   borderRadius: "8px",
   cursor: "pointer",
+};
+
+const botaoExcluir = {
+  background: "#ef4444",
+  color: "#fff",
+  border: "none",
+  padding: "10px 15px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  marginTop: "10px",
 };
 
 const cardLista = {
