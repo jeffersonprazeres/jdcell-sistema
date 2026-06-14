@@ -264,20 +264,17 @@ Qualquer dúvida estamos à disposição.`;
       <title>OS ${ordem.numero_os} - JD CELL</title>
 
       <style>
-        body{
-          font-family: Arial, sans-serif;
-          margin:40px;
-          color:#000;
-        }
-.watermark{
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 600px;
-  opacity: 0.08;
-  z-index: -1;
+       body{
+  font-family: Arial, sans-serif;
+  margin:40px;
+  color:#000;
+
+  background-image: url('/jdcell-logo.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 500px;
 }
+
         .cabecalho{
           text-align:center;
           border-bottom:3px solid #22c55e;
@@ -341,7 +338,6 @@ Qualquer dúvida estamos à disposição.`;
     </head>
 
     <body>
-<img src="/jdcell-logo.png" class="watermark" />
       <div class="cabecalho">
         <img src="/jdcell-logo.png" class="logo" />
         <h1>JD CELL</h1>
