@@ -250,112 +250,195 @@ Qualquer dúvida estamos à disposição.`;
   }
 
   function imprimirOS(ordem: OrdemServico) {
-    const janela = window.open("", "_blank");
+  const janela = window.open("", "_blank");
 
-    if (janela) {
-      janela.document.write(`
-        <html>
-          <head>
-            <title>Ordem de Serviço - JD CELL</title>
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                padding: 30px;
-                position: relative;
-              }
+  if (!janela) return;
 
-              .watermark {
-                position: fixed;
-                top: 35%;
-                left: 20%;
-                width: 60%;
-                opacity: 0.08;
-                z-index: -1;
-              }
+  const lucro =
+    Number(ordem.valor_final || 0) -
+    Number(ordem.custo_pecas || 0);
 
-              .header {
-                text-align: center;
-                border-bottom: 2px solid #000;
-                padding-bottom: 15px;
-                margin-bottom: 20px;
-              }
+  janela.document.write(`
+  <html>
+    <head>
+      <title>OS ${ordem.numero_os} - JD CELL</title>
 
-              .logo {
-                width: 180px;
-              }
+      <style>
+        body{
+          font-family: Arial, sans-serif;
+          margin:40px;
+          color:#000;
+        }
 
-              .box {
-                border: 1px solid #000;
-                padding: 10px;
-                margin-bottom: 12px;
-              }
+        .cabecalho{
+          text-align:center;
+          border-bottom:3px solid #22c55e;
+          padding-bottom:15px;
+          margin-bottom:20px;
+        }
 
-              .assinatura {
-                margin-top: 60px;
-                display: flex;
-                justify-content: space-between;
-              }
+        .logo{
+          width:180px;
+          margin-bottom:10px;
+        }
 
-              .linha {
-                border-top: 1px solid #000;
-                width: 45%;
-                text-align: center;
-                padding-top: 5px;
-              }
-            </style>
-          </head>
-          <body>
-            <img src="/jdcell-logo.png" class="watermark" />
+        .os{
+          font-size:24px;
+          font-weight:bold;
+          color:#22c55e;
+        }
 
-            <div class="header">
-              <img src="/jdcell-logo.png" class="logo" />
-              <h2>JD CELL</h2>
-              <p>Arca Taquaralto - Box 25</p>
-              <p>Telefone: (63) 99981-8305</p>
-            </div>
+        .box{
+          border:1px solid #d1d5db;
+          padding:12px;
+          margin-bottom:12px;
+          border-radius:8px;
+        }
 
-            <h2>Ordem de Serviço Nº ${ordem.numero_os}</h2>
+        .titulo{
+          font-weight:bold;
+          margin-bottom:8px;
+          color:#22c55e;
+        }
 
-            <div class="box">
-              <strong>Cliente:</strong> ${
-                ordem.clientes?.nome || "Sem cliente"
-              }<br/>
-              <strong>Telefone:</strong> ${ordem.clientes?.telefone || ""}
-            </div>
+        table{
+          width:100%;
+          border-collapse:collapse;
+        }
 
-            <div class="box">
-              <strong>Aparelho:</strong> ${ordem.marca} ${ordem.modelo}<br/>
-              <strong>Status:</strong> ${ordem.status}<br/>
-              <strong>Peça usada:</strong> ${ordem.produto_nome || "Não informada"}
-            </div>
+        td{
+          padding:6px;
+        }
 
-            <div class="box">
-              <strong>Valor do Serviço:</strong> R$ ${Number(
-                ordem.valor_final || 0
-              ).toFixed(2)}<br/>
-              <strong>Custo da peça:</strong> R$ ${Number(
-                ordem.custo_pecas || 0
-              ).toFixed(2)}<br/>
-              <strong>Garantia:</strong> 90 dias
-            </div>
+        .assinaturas{
+          margin-top:70px;
+          display:flex;
+          justify-content:space-between;
+        }
 
-            <div class="box">
-              <strong>Observações:</strong><br/>
-              Serviço registrado pela JD CELL.
-            </div>
+        .linha{
+          width:280px;
+          border-top:1px solid #000;
+          text-align:center;
+          padding-top:6px;
+        }
 
-            <div class="assinatura">
-              <div class="linha">Assinatura do Cliente</div>
-              <div class="linha">JD CELL</div>
-            </div>
-          </body>
-        </html>
-      `);
+        .garantia{
+          background:#f3f4f6;
+          padding:12px;
+          border-radius:8px;
+          margin-top:20px;
+        }
+      </style>
+    </head>
 
-      janela.document.close();
-      janela.print();
-    }
-  }
+    <body>
+
+      <div class="cabecalho">
+        <img src="/jdcell-logo.png" class="logo" />
+        <h1>JD CELL</h1>
+        <p>Assistência Técnica Especializada</p>
+        <p>Arca Taquaralto - Box 25</p>
+        <p>(63) 99981-8305</p>
+      </div>
+
+      <div class="os">
+        ORDEM DE SERVIÇO Nº ${ordem.numero_os}
+      </div>
+
+      <br>
+
+      <div class="box">
+        <div class="titulo">DADOS DO CLIENTE</div>
+
+        <table>
+          <tr>
+            <td><strong>Nome:</strong></td>
+            <td>${ordem.clientes?.nome || ""}</td>
+          </tr>
+
+          <tr>
+            <td><strong>Telefone:</strong></td>
+            <td>${ordem.clientes?.telefone || ""}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="box">
+        <div class="titulo">APARELHO</div>
+
+        <table>
+          <tr>
+            <td><strong>Marca:</strong></td>
+            <td>${ordem.marca}</td>
+          </tr>
+
+          <tr>
+            <td><strong>Modelo:</strong></td>
+            <td>${ordem.modelo}</td>
+          </tr>
+
+          <tr>
+            <td><strong>Status:</strong></td>
+            <td>${ordem.status}</td>
+          </tr>
+
+          <tr>
+            <td><strong>Peça utilizada:</strong></td>
+            <td>${ordem.produto_nome || "Não informada"}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="box">
+        <div class="titulo">VALORES</div>
+
+        <table>
+          <tr>
+            <td>Valor da peça</td>
+            <td>R$ ${Number(ordem.custo_pecas || 0).toFixed(2)}</td>
+          </tr>
+
+          <tr>
+            <td>Valor do serviço</td>
+            <td>R$ ${Number(ordem.valor_final || 0).toFixed(2)}</td>
+          </tr>
+
+          <tr>
+            <td>Lucro</td>
+            <td>R$ ${lucro.toFixed(2)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="garantia">
+        <strong>GARANTIA:</strong><br><br>
+
+        A JD CELL concede garantia de 90 dias
+        referente ao serviço executado.
+
+        A garantia não cobre:
+        quedas, oxidação, mau uso,
+        quebra de tela ou danos causados pelo cliente.
+      </div>
+
+      <div class="assinaturas">
+        <div class="linha">
+          Assinatura do Cliente
+        </div>
+
+        <div class="linha">
+          Responsável Técnico
+        </div>
+      </div>
+
+    </body>
+  </html>
+  `);
+
+  janela.document.close();
+  janela.print();
+}
 
   useEffect(() => {
     carregarClientes();
