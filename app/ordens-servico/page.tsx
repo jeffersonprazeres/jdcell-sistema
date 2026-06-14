@@ -272,7 +272,7 @@ Qualquer dúvida estamos à disposição.`;
   background-image: url('/jdcell-logo.png');
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 500px;
+  background-size: 450px;
 }
 
         .cabecalho{
