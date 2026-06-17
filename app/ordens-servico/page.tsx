@@ -23,12 +23,18 @@ type OrdemServico = {
   numero_os: number;
   marca: string;
   modelo: string;
+
+  imei: string;
+  defeito_relatado: string;
+
   status: string;
   custo_pecas: number;
   valor_final: number;
+
   produto_id: string | null;
   produto_nome: string | null;
   created_at: string;
+
   clientes: {
     nome: string;
     telefone: string;
@@ -85,6 +91,8 @@ export default function OrdensServico() {
         numero_os,
         marca,
         modelo,
+        imei,
+        defeito_relatado,
         status,
         custo_pecas,
         valor_final,
@@ -381,12 +389,28 @@ Qualquer dúvida estamos à disposição.`;
             <td><strong>Modelo:</strong></td>
             <td>${ordem.modelo}</td>
           </tr>
+<tr>
+  <td><strong>IMEI:</strong></td>
+  <td>${ordem.imei || ""}</td>
+</tr>
 
+<tr>
+  <td><strong>Defeito relatado:</strong></td>
+  <td>${ordem.defeito_relatado || ""}</td>
+</tr>
           <tr>
             <td><strong>Status:</strong></td>
             <td>${ordem.status}</td>
           </tr>
+<tr>
+  <td><strong>IMEI:</strong></td>
+  <td>${(ordem as any).imei || ""}</td>
+</tr>
 
+<tr>
+  <td><strong>Defeito:</strong></td>
+  <td>${(ordem as any).defeito_relatado || ""}</td>
+</tr>
           <tr>
             <td><strong>Peça utilizada:</strong></td>
             <td>${ordem.produto_nome || "Não informada"}</td>
