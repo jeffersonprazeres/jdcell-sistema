@@ -23,18 +23,17 @@ type OrdemServico = {
   numero_os: number;
   marca: string;
   modelo: string;
-
   imei: string;
   defeito_relatado: string;
-
+  senha_aparelho: string;
+  acessorios: string;
+  servico_executado: string;
   status: string;
   custo_pecas: number;
   valor_final: number;
-
   produto_id: string | null;
   produto_nome: string | null;
   created_at: string;
-
   clientes: {
     nome: string;
     telefone: string;
@@ -51,6 +50,9 @@ export default function OrdensServico() {
   const [modelo, setModelo] = useState("");
   const [imei, setImei] = useState("");
   const [defeito, setDefeito] = useState("");
+  const [senha, setSenha] = useState("");
+  const [acessorios, setAcessorios] = useState("");
+  const [servicoExecutado, setServicoExecutado] = useState("");
   const [status, setStatus] = useState("Recebido");
   const [produtoId, setProdutoId] = useState("");
   const [custoPecas, setCustoPecas] = useState("");
@@ -93,6 +95,9 @@ export default function OrdensServico() {
         modelo,
         imei,
         defeito_relatado,
+        senha_aparelho,
+        acessorios,
+        servico_executado,
         status,
         custo_pecas,
         valor_final,
@@ -143,6 +148,9 @@ export default function OrdensServico() {
         modelo,
         imei,
         defeito_relatado: defeito,
+        senha_aparelho: senha,
+        acessorios,
+        servico_executado: servicoExecutado,
         status,
         produto_id: produtoSelecionado ? String(produtoSelecionado.id) : null,
         produto_nome: produtoSelecionado ? produtoSelecionado.nome : null,
@@ -165,6 +173,9 @@ export default function OrdensServico() {
     setModelo("");
     setImei("");
     setDefeito("");
+    setSenha("");
+    setAcessorios("");
+    setServicoExecutado("");
     setStatus("Recebido");
     setProdutoId("");
     setCustoPecas("");
@@ -175,9 +186,7 @@ export default function OrdensServico() {
   }
 
   async function baixarEstoqueDaOS(ordem: OrdemServico) {
-    if (!ordem.produto_id) {
-      return;
-    }
+    if (!ordem.produto_id) return;
 
     const { data: produto, error } = await supabase
       .from("estoque")
@@ -258,215 +267,212 @@ Qualquer dúvida estamos à disposição.`;
   }
 
   function imprimirOS(ordem: OrdemServico) {
-  const janela = window.open("", "_blank");
+    const janela = window.open("", "_blank");
 
-  if (!janela) return;
+    if (!janela) return;
 
-  const lucro =
-    Number(ordem.valor_final || 0) -
-    Number(ordem.custo_pecas || 0);
+    const lucro =
+      Number(ordem.valor_final || 0) - Number(ordem.custo_pecas || 0);
 
-  janela.document.write(`
-  <html>
-    <head>
-      <title>OS ${ordem.numero_os} - JD CELL</title>
+    janela.document.write(`
+      <html>
+        <head>
+          <title>OS ${ordem.numero_os} - JD CELL</title>
 
-      <style>
-       body{
-  font-family: Arial, sans-serif;
-  margin:40px;
-  color:#000;
+          <style>
+            body{
+              font-family: Arial, sans-serif;
+              margin:40px;
+              color:#000;
+              background-image: url('/jdcell-logo.png');
+              background-repeat: no-repeat;
+              background-position: center center;
+              background-size: 450px;
+            }
 
-  background-image: url('/jdcell-logo.png');
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: 450px;
-}
+            .cabecalho{
+              text-align:center;
+              border-bottom:3px solid #22c55e;
+              padding-bottom:15px;
+              margin-bottom:20px;
+            }
 
-        .cabecalho{
-          text-align:center;
-          border-bottom:3px solid #22c55e;
-          padding-bottom:15px;
-          margin-bottom:20px;
-        }
+            .logo{
+              width:180px;
+              margin-bottom:10px;
+            }
 
-        .logo{
-          width:180px;
-          margin-bottom:10px;
-        }
+            .os{
+              font-size:24px;
+              font-weight:bold;
+              color:#22c55e;
+            }
 
-        .os{
-          font-size:24px;
-          font-weight:bold;
-          color:#22c55e;
-        }
+            .box{
+              border:1px solid #d1d5db;
+              padding:12px;
+              margin-bottom:12px;
+              border-radius:8px;
+            }
 
-        .box{
-          border:1px solid #d1d5db;
-          padding:12px;
-          margin-bottom:12px;
-          border-radius:8px;
-        }
+            .titulo{
+              font-weight:bold;
+              margin-bottom:8px;
+              color:#22c55e;
+            }
 
-        .titulo{
-          font-weight:bold;
-          margin-bottom:8px;
-          color:#22c55e;
-        }
+            table{
+              width:100%;
+              border-collapse:collapse;
+            }
 
-        table{
-          width:100%;
-          border-collapse:collapse;
-        }
+            td{
+              padding:6px;
+              vertical-align: top;
+            }
 
-        td{
-          padding:6px;
-        }
+            .assinaturas{
+              margin-top:70px;
+              display:flex;
+              justify-content:space-between;
+            }
 
-        .assinaturas{
-          margin-top:70px;
-          display:flex;
-          justify-content:space-between;
-        }
+            .linha{
+              width:280px;
+              border-top:1px solid #000;
+              text-align:center;
+              padding-top:6px;
+            }
 
-        .linha{
-          width:280px;
-          border-top:1px solid #000;
-          text-align:center;
-          padding-top:6px;
-        }
+            .garantia{
+              background:#f3f4f6;
+              padding:12px;
+              border-radius:8px;
+              margin-top:20px;
+            }
+          </style>
+        </head>
 
-        .garantia{
-          background:#f3f4f6;
-          padding:12px;
-          border-radius:8px;
-          margin-top:20px;
-        }
-      </style>
-    </head>
+        <body>
+          <div class="cabecalho">
+            <img src="/jdcell-logo.png" class="logo" />
+            <h1>JD CELL</h1>
+            <p>Assistência Técnica Especializada</p>
+            <p>Arca Taquaralto - Box 25</p>
+            <p>(63) 99981-8305</p>
+          </div>
 
-    <body>
-      <div class="cabecalho">
-        <img src="/jdcell-logo.png" class="logo" />
-        <h1>JD CELL</h1>
-        <p>Assistência Técnica Especializada</p>
-        <p>Arca Taquaralto - Box 25</p>
-        <p>(63) 99981-8305</p>
-      </div>
+          <div class="os">
+            ORDEM DE SERVIÇO Nº ${ordem.numero_os}
+          </div>
 
-      <div class="os">
-        ORDEM DE SERVIÇO Nº ${ordem.numero_os}
-      </div>
+          <br>
 
-      <br>
+          <div class="box">
+            <div class="titulo">DADOS DO CLIENTE</div>
 
-      <div class="box">
-        <div class="titulo">DADOS DO CLIENTE</div>
+            <table>
+              <tr>
+                <td><strong>Nome:</strong></td>
+                <td>${ordem.clientes?.nome || ""}</td>
+              </tr>
 
-        <table>
-          <tr>
-            <td><strong>Nome:</strong></td>
-            <td>${ordem.clientes?.nome || ""}</td>
-          </tr>
+              <tr>
+                <td><strong>Telefone:</strong></td>
+                <td>${ordem.clientes?.telefone || ""}</td>
+              </tr>
+            </table>
+          </div>
 
-          <tr>
-            <td><strong>Telefone:</strong></td>
-            <td>${ordem.clientes?.telefone || ""}</td>
-          </tr>
-        </table>
-      </div>
+          <div class="box">
+            <div class="titulo">APARELHO</div>
 
-      <div class="box">
-        <div class="titulo">APARELHO</div>
+            <table>
+              <tr>
+                <td><strong>Marca:</strong></td>
+                <td>${ordem.marca || ""}</td>
+              </tr>
 
-        <table>
-          <tr>
-            <td><strong>Marca:</strong></td>
-            <td>${ordem.marca}</td>
-          </tr>
+              <tr>
+                <td><strong>Modelo:</strong></td>
+                <td>${ordem.modelo || ""}</td>
+              </tr>
 
-          <tr>
-            <td><strong>Modelo:</strong></td>
-            <td>${ordem.modelo}</td>
-          </tr>
-<tr>
-  <td><strong>IMEI:</strong></td>
-  <td>${ordem.imei || ""}</td>
-</tr>
+              <tr>
+                <td><strong>IMEI:</strong></td>
+                <td>${ordem.imei || ""}</td>
+              </tr>
 
-<tr>
-  <td><strong>Defeito relatado:</strong></td>
-  <td>${ordem.defeito_relatado || ""}</td>
-</tr>
-          <tr>
-            <td><strong>Status:</strong></td>
-            <td>${ordem.status}</td>
-          </tr>
-<tr>
-  <td><strong>IMEI:</strong></td>
-  <td>${(ordem as any).imei || ""}</td>
-</tr>
+              <tr>
+                <td><strong>Defeito relatado:</strong></td>
+                <td>${ordem.defeito_relatado || ""}</td>
+              </tr>
 
-<tr>
-  <td><strong>Defeito:</strong></td>
-  <td>${(ordem as any).defeito_relatado || ""}</td>
-</tr>
-          <tr>
-            <td><strong>Peça utilizada:</strong></td>
-            <td>${ordem.produto_nome || "Não informada"}</td>
-          </tr>
-        </table>
-      </div>
+              <tr>
+                <td><strong>Senha do aparelho:</strong></td>
+                <td>${ordem.senha_aparelho || ""}</td>
+              </tr>
 
-      <div class="box">
-        <div class="titulo">VALORES</div>
+              <tr>
+                <td><strong>Acessórios entregues:</strong></td>
+                <td>${ordem.acessorios || ""}</td>
+              </tr>
 
-        <table>
-          <tr>
-            <td>Valor da peça</td>
-            <td>R$ ${Number(ordem.custo_pecas || 0).toFixed(2)}</td>
-          </tr>
+              <tr>
+                <td><strong>Serviço executado:</strong></td>
+                <td>${ordem.servico_executado || ""}</td>
+              </tr>
 
-          <tr>
-            <td>Valor do serviço</td>
-            <td>R$ ${Number(ordem.valor_final || 0).toFixed(2)}</td>
-          </tr>
+              <tr>
+                <td><strong>Status:</strong></td>
+                <td>${ordem.status || ""}</td>
+              </tr>
 
-          <tr>
-            <td>Lucro</td>
-            <td>R$ ${lucro.toFixed(2)}</td>
-          </tr>
-        </table>
-      </div>
+              <tr>
+                <td><strong>Peça utilizada:</strong></td>
+                <td>${ordem.produto_nome || "Não informada"}</td>
+              </tr>
+            </table>
+          </div>
 
-      <div class="garantia">
-        <strong>GARANTIA:</strong><br><br>
+          <div class="box">
+            <div class="titulo">VALORES</div>
 
-        A JD CELL concede garantia de 90 dias
-        referente ao serviço executado.
+            <table>
+              <tr>
+                <td>Valor da peça</td>
+                <td>R$ ${Number(ordem.custo_pecas || 0).toFixed(2)}</td>
+              </tr>
 
-        A garantia não cobre:
-        quedas, oxidação, mau uso,
-        quebra de tela ou danos causados pelo cliente.
-      </div>
+              <tr>
+                <td>Valor do serviço</td>
+                <td>R$ ${Number(ordem.valor_final || 0).toFixed(2)}</td>
+              </tr>
 
-      <div class="assinaturas">
-        <div class="linha">
-          Assinatura do Cliente
-        </div>
+              <tr>
+                <td>Lucro</td>
+                <td>R$ ${lucro.toFixed(2)}</td>
+              </tr>
+            </table>
+          </div>
 
-        <div class="linha">
-          Responsável Técnico
-        </div>
-      </div>
+          <div class="garantia">
+            <strong>GARANTIA:</strong><br><br>
+            A JD CELL concede garantia de 90 dias referente ao serviço executado.
+            A garantia não cobre quedas, oxidação, mau uso, quebra de tela ou danos causados pelo cliente.
+          </div>
 
-    </body>
-  </html>
-  `);
+          <div class="assinaturas">
+            <div class="linha">Assinatura do Cliente</div>
+            <div class="linha">Responsável Técnico</div>
+          </div>
+        </body>
+      </html>
+    `);
 
-  janela.document.close();
-  janela.print();
-}
+    janela.document.close();
+    janela.print();
+  }
 
   useEffect(() => {
     carregarClientes();
@@ -489,13 +495,13 @@ Qualquer dúvida estamos à disposição.`;
 
   return (
     <main
-  style={{
-    minHeight: "100vh",
-    background: "transparent",
-    color: "#fff",
-    padding: "30px",
-  }}
->
+      style={{
+        minHeight: "100vh",
+        background: "transparent",
+        color: "#fff",
+        padding: "30px",
+      }}
+    >
       <h1>Ordem de Serviço</h1>
 
       <br />
@@ -503,13 +509,7 @@ Qualquer dúvida estamos à disposição.`;
       <select
         value={clienteId}
         onChange={(e) => setClienteId(e.target.value)}
-        style={{
-          width: "420px",
-          padding: "10px",
-          display: "block",
-          marginBottom: "10px",
-          color: "#000",
-        }}
+        style={selectInput}
       >
         <option value="">Selecione o cliente</option>
         {clientes.map((cliente) => (
@@ -547,26 +547,35 @@ Qualquer dúvida estamos à disposição.`;
         placeholder="Defeito Relatado"
         value={defeito}
         onChange={(e) => setDefeito(e.target.value)}
-        style={{
-          width: "400px",
-          height: "100px",
-          padding: "10px",
-          display: "block",
-          marginBottom: "10px",
-          color: "#000",
-        }}
+        style={textarea}
+      />
+
+      <input
+        type="text"
+        placeholder="Senha do aparelho"
+        value={senha}
+        onChange={(e) => setSenha(e.target.value)}
+        style={input}
+      />
+
+      <textarea
+        placeholder="Acessórios entregues"
+        value={acessorios}
+        onChange={(e) => setAcessorios(e.target.value)}
+        style={textareaMenor}
+      />
+
+      <textarea
+        placeholder="Serviço executado"
+        value={servicoExecutado}
+        onChange={(e) => setServicoExecutado(e.target.value)}
+        style={textarea}
       />
 
       <select
         value={status}
         onChange={(e) => setStatus(e.target.value)}
-        style={{
-          width: "420px",
-          padding: "10px",
-          display: "block",
-          marginBottom: "10px",
-          color: "#000",
-        }}
+        style={selectInput}
       >
         <option>Recebido</option>
         <option>Em análise</option>
@@ -579,13 +588,7 @@ Qualquer dúvida estamos à disposição.`;
       <select
         value={produtoId}
         onChange={(e) => selecionarProduto(e.target.value)}
-        style={{
-          width: "420px",
-          padding: "10px",
-          display: "block",
-          marginBottom: "10px",
-          color: "#000",
-        }}
+        style={selectInput}
       >
         <option value="">Selecione uma peça do estoque</option>
         {produtos.map((produto) => (
@@ -616,18 +619,7 @@ Qualquer dúvida estamos à disposição.`;
         <strong>Lucro estimado:</strong> R$ {lucro.toFixed(2)}
       </p>
 
-      <button
-        onClick={salvarOS}
-        style={{
-          background: "#22c55e",
-          color: "#fff",
-          border: "none",
-          padding: "12px 20px",
-          borderRadius: "8px",
-          cursor: "pointer",
-          marginTop: "10px",
-        }}
-      >
+      <button onClick={salvarOS} style={botao}>
         Salvar Ordem de Serviço
       </button>
 
@@ -642,14 +634,7 @@ Qualquer dúvida estamos à disposição.`;
         placeholder="Pesquisar por OS, cliente, telefone, aparelho ou peça"
         value={busca}
         onChange={(e) => setBusca(e.target.value)}
-        style={{
-          width: "400px",
-          padding: "10px",
-          marginTop: "10px",
-          marginBottom: "20px",
-          display: "block",
-          color: "#000",
-        }}
+        style={input}
       />
 
       <div style={{ marginTop: "15px" }}>
@@ -660,17 +645,16 @@ Qualquer dúvida estamos à disposição.`;
             Number(ordem.valor_final || 0) - Number(ordem.custo_pecas || 0);
 
           return (
-            <div
-              key={ordem.id}
-              style={{
-                background: "rgba(30, 41, 59, 0.90)",
-                padding: "15px",
-                borderRadius: "10px",
-                marginBottom: "10px",
-              }}
-            >
+            <div key={ordem.id} style={cardOS}>
               <strong>OS #{ordem.numero_os}</strong>
               <p>Cliente: {ordem.clientes?.nome || "Sem cliente"}</p>
+              <p>
+                Aparelho: {ordem.marca} {ordem.modelo}
+              </p>
+              <p>IMEI: {ordem.imei || "Não informado"}</p>
+              <p>Defeito: {ordem.defeito_relatado || "Não informado"}</p>
+              <p>Serviço executado: {ordem.servico_executado || "Não informado"}</p>
+              <p>Peça usada: {ordem.produto_nome || "Não informada"}</p>
 
               {ordem.clientes?.telefone && (
                 <button
@@ -682,40 +666,17 @@ Qualquer dúvida estamos à disposição.`;
                       ordem.status
                     )
                   }
-                  style={{
-                    background: "#25D366",
-                    color: "#fff",
-                    border: "none",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    marginBottom: "8px",
-                    marginTop: "8px",
-                    display: "block",
-                  }}
+                  style={botaoWhatsApp}
                 >
                   WhatsApp Cliente
                 </button>
               )}
 
-              <p>
-                Aparelho: {ordem.marca} {ordem.modelo}
-              </p>
-
-              <p>Peça usada: {ordem.produto_nome || "Não informada"}</p>
-
               <label>Status:</label>
-
               <select
                 value={ordem.status}
                 onChange={(e) => atualizarStatusOS(ordem, e.target.value)}
-                style={{
-                  width: "220px",
-                  padding: "8px",
-                  display: "block",
-                  marginBottom: "10px",
-                  color: "#000",
-                }}
+                style={inputPequeno}
               >
                 <option>Recebido</option>
                 <option>Em análise</option>
@@ -744,13 +705,7 @@ Qualquer dúvida estamos à disposição.`;
 
                   carregarOrdens();
                 }}
-                style={{
-                  width: "220px",
-                  padding: "8px",
-                  display: "block",
-                  marginBottom: "10px",
-                  color: "#000",
-                }}
+                style={inputPequeno}
               />
 
               <label>Valor final do serviço:</label>
@@ -772,29 +727,12 @@ Qualquer dúvida estamos à disposição.`;
 
                   carregarOrdens();
                 }}
-                style={{
-                  width: "220px",
-                  padding: "8px",
-                  display: "block",
-                  marginBottom: "10px",
-                  color: "#000",
-                }}
+                style={inputPequeno}
               />
 
               <p>Lucro: R$ {lucroOS.toFixed(2)}</p>
 
-              <button
-                onClick={() => imprimirOS(ordem)}
-                style={{
-                  background: "#22c55e",
-                  color: "#fff",
-                  border: "none",
-                  padding: "10px 15px",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  marginTop: "10px",
-                }}
-              >
+              <button onClick={() => imprimirOS(ordem)} style={botao}>
                 Imprimir OS
               </button>
 
@@ -819,16 +757,7 @@ Qualquer dúvida estamos à disposição.`;
                   alert("OS excluída com sucesso!");
                   carregarOrdens();
                 }}
-                style={{
-                  background: "#ef4444",
-                  color: "#fff",
-                  border: "none",
-                  padding: "10px 15px",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  marginTop: "10px",
-                  marginLeft: "10px",
-                }}
+                style={botaoExcluir}
               >
                 Excluir OS
               </button>
@@ -846,4 +775,66 @@ const input = {
   display: "block",
   marginBottom: "10px",
   color: "#000",
+};
+
+const selectInput = {
+  ...input,
+  width: "420px",
+};
+
+const textarea = {
+  width: "400px",
+  height: "100px",
+  padding: "10px",
+  display: "block",
+  marginBottom: "10px",
+  color: "#000",
+};
+
+const textareaMenor = {
+  ...textarea,
+  height: "80px",
+};
+
+const inputPequeno = {
+  width: "220px",
+  padding: "8px",
+  display: "block",
+  marginBottom: "10px",
+  color: "#000",
+};
+
+const botao = {
+  background: "#22c55e",
+  color: "#fff",
+  border: "none",
+  padding: "10px 15px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  marginTop: "10px",
+};
+
+const botaoExcluir = {
+  ...botao,
+  background: "#ef4444",
+  marginLeft: "10px",
+};
+
+const botaoWhatsApp = {
+  background: "#25D366",
+  color: "#fff",
+  border: "none",
+  padding: "8px 12px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  marginBottom: "8px",
+  marginTop: "8px",
+  display: "block",
+};
+
+const cardOS = {
+  background: "rgba(30, 41, 59, 0.90)",
+  padding: "15px",
+  borderRadius: "10px",
+  marginBottom: "10px",
 };
