@@ -28,6 +28,7 @@ type OrdemServico = {
   senha_aparelho: string;
   acessorios: string;
   servico_executado: string;
+  foto_aparelho: string;
   status: string;
   custo_pecas: number;
   valor_final: number;
@@ -53,6 +54,7 @@ export default function OrdensServico() {
   const [senha, setSenha] = useState("");
   const [acessorios, setAcessorios] = useState("");
   const [servicoExecutado, setServicoExecutado] = useState("");
+  const [foto, setFoto] = useState<File | null>(null);
   const [status, setStatus] = useState("Recebido");
   const [produtoId, setProdutoId] = useState("");
   const [custoPecas, setCustoPecas] = useState("");
@@ -98,6 +100,7 @@ export default function OrdensServico() {
         senha_aparelho,
         acessorios,
         servico_executado,
+        foto_aparelho,
         status,
         custo_pecas,
         valor_final,
@@ -137,6 +140,27 @@ export default function OrdensServico() {
       return;
     }
 
+    let fotoUrl = "";
+
+    if (foto) {
+      const nomeArquivo = `${Date.now()}-${foto.name}`;
+
+      const { error: erroUpload } = await supabase.storage
+        .from("fotos-os")
+        .upload(nomeArquivo, foto);
+
+      if (erroUpload) {
+        setMensagem("Erro ao enviar foto: " + erroUpload.message);
+        return;
+      }
+
+      const { data } = supabase.storage
+        .from("fotos-os")
+        .getPublicUrl(nomeArquivo);
+
+      fotoUrl = data.publicUrl;
+    }
+
     const produtoSelecionado = produtos.find(
       (produto) => String(produto.id) === String(produtoId)
     );
@@ -151,6 +175,7 @@ export default function OrdensServico() {
         senha_aparelho: senha,
         acessorios,
         servico_executado: servicoExecutado,
+        foto_aparelho: fotoUrl,
         status,
         produto_id: produtoSelecionado ? String(produtoSelecionado.id) : null,
         produto_nome: produtoSelecionado ? produtoSelecionado.nome : null,
@@ -176,6 +201,7 @@ export default function OrdensServico() {
     setSenha("");
     setAcessorios("");
     setServicoExecutado("");
+    setFoto(null);
     setStatus("Recebido");
     setProdutoId("");
     setCustoPecas("");
@@ -331,6 +357,12 @@ Qualquer dúvida estamos à disposição.`;
               vertical-align: top;
             }
 
+            .foto{
+              max-width:250px;
+              border-radius:8px;
+              margin-top:8px;
+            }
+
             .assinaturas{
               margin-top:70px;
               display:flex;
@@ -432,6 +464,17 @@ Qualquer dúvida estamos à disposição.`;
                 <td><strong>Peça utilizada:</strong></td>
                 <td>${ordem.produto_nome || "Não informada"}</td>
               </tr>
+
+              <tr>
+                <td><strong>Foto do aparelho:</strong></td>
+                <td>
+                  ${
+                    ordem.foto_aparelho
+                      ? `<img src="${ordem.foto_aparelho}" class="foto" />`
+                      : "Sem foto"
+                  }
+                </td>
+              </tr>
             </table>
           </div>
 
@@ -519,64 +562,30 @@ Qualquer dúvida estamos à disposição.`;
         ))}
       </select>
 
+      <input type="text" placeholder="Marca" value={marca} onChange={(e) => setMarca(e.target.value)} style={input} />
+      <input type="text" placeholder="Modelo" value={modelo} onChange={(e) => setModelo(e.target.value)} style={input} />
+      <input type="text" placeholder="IMEI" value={imei} onChange={(e) => setImei(e.target.value)} style={input} />
+
+      <textarea placeholder="Defeito Relatado" value={defeito} onChange={(e) => setDefeito(e.target.value)} style={textarea} />
+
+      <input type="text" placeholder="Senha do aparelho" value={senha} onChange={(e) => setSenha(e.target.value)} style={input} />
+
+      <textarea placeholder="Acessórios entregues" value={acessorios} onChange={(e) => setAcessorios(e.target.value)} style={textareaMenor} />
+
+      <textarea placeholder="Serviço executado" value={servicoExecutado} onChange={(e) => setServicoExecutado(e.target.value)} style={textarea} />
+
       <input
-        type="text"
-        placeholder="Marca"
-        value={marca}
-        onChange={(e) => setMarca(e.target.value)}
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          if (e.target.files?.[0]) {
+            setFoto(e.target.files[0]);
+          }
+        }}
         style={input}
       />
 
-      <input
-        type="text"
-        placeholder="Modelo"
-        value={modelo}
-        onChange={(e) => setModelo(e.target.value)}
-        style={input}
-      />
-
-      <input
-        type="text"
-        placeholder="IMEI"
-        value={imei}
-        onChange={(e) => setImei(e.target.value)}
-        style={input}
-      />
-
-      <textarea
-        placeholder="Defeito Relatado"
-        value={defeito}
-        onChange={(e) => setDefeito(e.target.value)}
-        style={textarea}
-      />
-
-      <input
-        type="text"
-        placeholder="Senha do aparelho"
-        value={senha}
-        onChange={(e) => setSenha(e.target.value)}
-        style={input}
-      />
-
-      <textarea
-        placeholder="Acessórios entregues"
-        value={acessorios}
-        onChange={(e) => setAcessorios(e.target.value)}
-        style={textareaMenor}
-      />
-
-      <textarea
-        placeholder="Serviço executado"
-        value={servicoExecutado}
-        onChange={(e) => setServicoExecutado(e.target.value)}
-        style={textarea}
-      />
-
-      <select
-        value={status}
-        onChange={(e) => setStatus(e.target.value)}
-        style={selectInput}
-      >
+      <select value={status} onChange={(e) => setStatus(e.target.value)} style={selectInput}>
         <option>Recebido</option>
         <option>Em análise</option>
         <option>Aguardando aprovação</option>
@@ -585,35 +594,17 @@ Qualquer dúvida estamos à disposição.`;
         <option>Entregue</option>
       </select>
 
-      <select
-        value={produtoId}
-        onChange={(e) => selecionarProduto(e.target.value)}
-        style={selectInput}
-      >
+      <select value={produtoId} onChange={(e) => selecionarProduto(e.target.value)} style={selectInput}>
         <option value="">Selecione uma peça do estoque</option>
         {produtos.map((produto) => (
           <option key={produto.id} value={produto.id}>
-            {produto.nome} | Qtd: {produto.quantidade} | Custo: R${" "}
-            {Number(produto.valor_custo || 0).toFixed(2)}
+            {produto.nome} | Qtd: {produto.quantidade} | Custo: R$ {Number(produto.valor_custo || 0).toFixed(2)}
           </option>
         ))}
       </select>
 
-      <input
-        type="number"
-        placeholder="Valor da peça"
-        value={custoPecas}
-        onChange={(e) => setCustoPecas(e.target.value)}
-        style={input}
-      />
-
-      <input
-        type="number"
-        placeholder="Valor final do serviço"
-        value={valorFinal}
-        onChange={(e) => setValorFinal(e.target.value)}
-        style={input}
-      />
+      <input type="number" placeholder="Valor da peça" value={custoPecas} onChange={(e) => setCustoPecas(e.target.value)} style={input} />
+      <input type="number" placeholder="Valor final do serviço" value={valorFinal} onChange={(e) => setValorFinal(e.target.value)} style={input} />
 
       <p>
         <strong>Lucro estimado:</strong> R$ {lucro.toFixed(2)}
@@ -648,13 +639,25 @@ Qualquer dúvida estamos à disposição.`;
             <div key={ordem.id} style={cardOS}>
               <strong>OS #{ordem.numero_os}</strong>
               <p>Cliente: {ordem.clientes?.nome || "Sem cliente"}</p>
-              <p>
-                Aparelho: {ordem.marca} {ordem.modelo}
-              </p>
+              <p>Aparelho: {ordem.marca} {ordem.modelo}</p>
               <p>IMEI: {ordem.imei || "Não informado"}</p>
               <p>Defeito: {ordem.defeito_relatado || "Não informado"}</p>
               <p>Serviço executado: {ordem.servico_executado || "Não informado"}</p>
               <p>Peça usada: {ordem.produto_nome || "Não informada"}</p>
+
+              {ordem.foto_aparelho && (
+                <img
+                  src={ordem.foto_aparelho}
+                  alt="Aparelho"
+                  style={{
+                    width: "180px",
+                    borderRadius: "10px",
+                    marginTop: "10px",
+                    marginBottom: "10px",
+                    display: "block",
+                  }}
+                />
+              )}
 
               {ordem.clientes?.telefone && (
                 <button
