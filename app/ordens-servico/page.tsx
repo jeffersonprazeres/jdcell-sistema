@@ -35,6 +35,8 @@ type OrdemServico = {
   produto_id: string | null;
   produto_nome: string | null;
   created_at: string;
+  data_entrega: string | null;
+garantia_dias: number | null;
   clientes: {
     nome: string;
     telefone: string;
@@ -107,7 +109,9 @@ export default function OrdensServico() {
         produto_id,
         produto_nome,
         created_at,
-        clientes (
+data_entrega,
+garantia_dias,
+clientes (
           nome,
           telefone
         )
@@ -248,10 +252,22 @@ export default function OrdensServico() {
   async function atualizarStatusOS(ordem: OrdemServico, novoStatus: string) {
     const statusAnterior = ordem.status;
 
-    const { error } = await supabase
-      .from("ordens_servico")
-      .update({ status: novoStatus })
-      .eq("id", ordem.id);
+    const dadosAtualizacao: any = {
+  status: novoStatus,
+};
+
+if (
+  novoStatus === "Entregue" &&
+  ordem.status !== "Entregue"
+) {
+  dadosAtualizacao.data_entrega = new Date().toISOString();
+  dadosAtualizacao.garantia_dias = 90;
+}
+
+const { error } = await supabase
+  .from("ordens_servico")
+  .update(dadosAtualizacao)
+  .eq("id", ordem.id);
 
     if (error) {
       alert("Erro ao atualizar status: " + error.message);
@@ -299,7 +315,25 @@ Qualquer dúvida estamos à disposição.`;
 
     const lucro =
       Number(ordem.valor_final || 0) - Number(ordem.custo_pecas || 0);
+const garantiaDias = Number(ordem.garantia_dias || 0);
 
+const dataEntrega = ordem.data_entrega
+  ? new Date(ordem.data_entrega)
+  : null;
+
+const dataVencimento = dataEntrega
+  ? new Date(
+      dataEntrega.getTime() +
+        garantiaDias * 24 * 60 * 60 * 1000
+    )
+  : null;
+
+const diasRestantes = dataVencimento
+  ? Math.ceil(
+      (dataVencimento.getTime() - Date.now()) /
+        (1000 * 60 * 60 * 24)
+    )
+  : null;
     janela.document.write(`
       <html>
         <head>
@@ -631,11 +665,31 @@ Qualquer dúvida estamos à disposição.`;
       <div style={{ marginTop: "15px" }}>
         {ordensFiltradas.length === 0 && <p>Nenhuma OS encontrada.</p>}
 
-        {ordensFiltradas.map((ordem) => {
-          const lucroOS =
-            Number(ordem.valor_final || 0) - Number(ordem.custo_pecas || 0);
+       {ordensFiltradas.map((ordem) => {
+  const lucroOS =
+    Number(ordem.valor_final || 0) - Number(ordem.custo_pecas || 0);
 
-          return (
+  const garantiaDias = Number(ordem.garantia_dias || 0);
+
+  const dataEntrega = ordem.data_entrega
+    ? new Date(ordem.data_entrega)
+    : null;
+
+  const dataVencimento = dataEntrega
+    ? new Date(
+        dataEntrega.getTime() +
+          garantiaDias * 24 * 60 * 60 * 1000
+      )
+    : null;
+
+  const diasRestantes = dataVencimento
+    ? Math.ceil(
+        (dataVencimento.getTime() - Date.now()) /
+          (1000 * 60 * 60 * 24)
+      )
+    : null;
+
+  return (
             <div key={ordem.id} style={cardOS}>
               <strong>OS #{ordem.numero_os}</strong>
               <p>Cliente: {ordem.clientes?.nome || "Sem cliente"}</p>
@@ -734,7 +788,41 @@ Qualquer dúvida estamos à disposição.`;
               />
 
               <p>Lucro: R$ {lucroOS.toFixed(2)}</p>
+            
+{ordem.status === "Entregue" && dataEntrega && (
+  <div
+    style={{
+      background:
+        diasRestantes !== null && diasRestantes > 0
+          ? "#14532d"
+          : "#7f1d1d",
+      padding: "12px",
+      borderRadius: "8px",
+      marginTop: "10px",
+      marginBottom: "10px",
+    }}
+  >
+    <strong>
+      {diasRestantes !== null && diasRestantes > 0
+        ? "✅ Garantia Ativa"
+        : "❌ Garantia Vencida"}
+    </strong>
 
+    <p>
+      Data Entrega:{" "}
+      {new Date(ordem.data_entrega!).toLocaleDateString("pt-BR")}
+    </p>
+
+    <p>
+      Vencimento:{" "}
+      {dataVencimento?.toLocaleDateString("pt-BR")}
+    </p>
+
+    {diasRestantes !== null && diasRestantes > 0 && (
+      <p>Dias restantes: {diasRestantes}</p>
+    )}
+  </div>
+)}
               <button onClick={() => imprimirOS(ordem)} style={botao}>
                 Imprimir OS
               </button>
@@ -747,10 +835,10 @@ Qualquer dúvida estamos à disposição.`;
 
                   if (!confirmar) return;
 
-                  const { error } = await supabase
-                    .from("ordens_servico")
-                    .delete()
-                    .eq("id", ordem.id);
+                 const { error } = await supabase
+  .from("ordens_servico")
+  .delete()
+  .eq("id", ordem.id);
 
                   if (error) {
                     alert("Erro ao excluir OS: " + error.message);
