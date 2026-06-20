@@ -14,6 +14,11 @@ type Caixa = {
   valor: number;
 };
 
+type Produto = {
+  quantidade: number;
+  valor_custo: number;
+};
+
 export default function Dashboard() {
   const [clientes, setClientes] = useState(0);
   const [ordens, setOrdens] = useState(0);
@@ -23,6 +28,8 @@ export default function Dashboard() {
   const [lucroTotal, setLucroTotal] = useState(0);
   const [saldoCaixa, setSaldoCaixa] = useState(0);
   const [estoqueBaixo, setEstoqueBaixo] = useState(0);
+  const [totalPecas, setTotalPecas] = useState(0);
+  const [valorEstoque, setValorEstoque] = useState(0);
   const [statusResumo, setStatusResumo] = useState<Record<string, number>>({});
 
   async function carregarDados() {
@@ -40,18 +47,33 @@ export default function Dashboard() {
 
     const { data: listaEstoque } = await supabase
       .from("estoque")
-      .select("quantidade");
+      .select("quantidade, valor_custo");
 
     const ordensLista = (listaOrdens as Ordem[]) || [];
     const caixaLista = (listaCaixa as Caixa[]) || [];
+    const estoqueLista = (listaEstoque as Produto[]) || [];
 
     const baixo =
-      listaEstoque?.filter((produto) => Number(produto.quantidade || 0) <= 2)
+      estoqueLista.filter((produto) => Number(produto.quantidade || 0) <= 2)
         .length || 0;
+
+    const totalQuantidade = estoqueLista.reduce(
+      (total, produto) => total + Number(produto.quantidade || 0),
+      0
+    );
+
+    const totalValorEstoque = estoqueLista.reduce(
+      (total, produto) =>
+        total +
+        Number(produto.quantidade || 0) * Number(produto.valor_custo || 0),
+      0
+    );
 
     setClientes(totalClientes || 0);
     setOrdens(ordensLista.length);
     setEstoqueBaixo(baixo);
+    setTotalPecas(totalQuantidade);
+    setValorEstoque(totalValorEstoque);
 
     const abertas = ordensLista.filter(
       (os) => os.status !== "Entregue" && os.status !== "Finalizado"
@@ -132,6 +154,32 @@ export default function Dashboard() {
           <strong style={numero}>{osEntregues}</strong>
         </div>
 
+        <div
+          style={{
+            background:
+              estoqueBaixo > 0
+                ? "rgba(127, 29, 29, 0.92)"
+                : "rgba(30, 41, 59, 0.92)",
+            padding: "20px",
+            borderRadius: "12px",
+            cursor: "pointer",
+          }}
+          onClick={() => (window.location.href = "/estoque")}
+        >
+          <h3>⚠️ Estoque Baixo</h3>
+          <strong style={numero}>{estoqueBaixo} produtos</strong>
+        </div>
+
+        <div style={card}>
+          <h3>Total de Peças</h3>
+          <strong style={numero}>{totalPecas}</strong>
+        </div>
+
+        <div style={cardDestaque}>
+          <h3>Valor em Estoque</h3>
+          <strong style={numero}>R$ {valorEstoque.toFixed(2)}</strong>
+        </div>
+
         <div style={cardDestaque}>
           <h3>Faturamento Total</h3>
           <strong style={numero}>R$ {faturamentoTotal.toFixed(2)}</strong>
@@ -145,22 +193,6 @@ export default function Dashboard() {
         <div style={cardDestaque}>
           <h3>Saldo do Caixa</h3>
           <strong style={numero}>R$ {saldoCaixa.toFixed(2)}</strong>
-        </div>
-
-        <div
-          style={{
-            background:
-  estoqueBaixo > 0
-    ? "rgba(127, 29, 29, 0.92)"
-    : "rgba(30, 41, 59, 0.92)",
-            padding: "20px",
-            borderRadius: "12px",
-            cursor: "pointer",
-          }}
-          onClick={() => (window.location.href = "/estoque")}
-        >
-          <h3>⚠️ Estoque Baixo</h3>
-          <strong style={numero}>{estoqueBaixo} produtos</strong>
         </div>
       </div>
 
