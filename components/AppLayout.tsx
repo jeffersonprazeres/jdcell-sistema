@@ -14,14 +14,17 @@ export default function AppLayout({ funcao, titulo, children }: AppLayoutProps) 
         minHeight: "100vh",
         background: "#0f172a",
         color: "#fff",
+        display: "flex",
       }}
     >
       <Sidebar funcao={funcao} />
 
       <main
         style={{
-          marginLeft: "280px",
+          marginLeft: "240px",
+          width: "calc(100% - 240px)",
           padding: "30px",
+          boxSizing: "border-box",
         }}
       >
         <h1
