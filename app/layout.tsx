@@ -16,6 +16,12 @@ export const metadata: Metadata = {
   title: "JD CELL",
   description: "Sistema de Assistência Técnica JD CELL",
   manifest: "/manifest.json",
+  themeColor: "#22c55e",
+  appleWebApp: {
+    capable: true,
+    title: "JD CELL",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export default function RootLayout({

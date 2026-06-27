@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import CardResumo from "../../components/CardResumo";
+import MenuDashboard from "../../components/MenuDashboard";
+import AppLayout from "../../components/AppLayout";
 
 type Ordem = {
   status: string;
@@ -19,6 +22,12 @@ type Produto = {
   valor_custo: number;
 };
 
+type ContaPagar = {
+  valor: number;
+  vencimento: string;
+  status: string;
+};
+
 export default function Dashboard() {
   const [clientes, setClientes] = useState(0);
   const [ordens, setOrdens] = useState(0);
@@ -30,9 +39,35 @@ export default function Dashboard() {
   const [estoqueBaixo, setEstoqueBaixo] = useState(0);
   const [totalPecas, setTotalPecas] = useState(0);
   const [valorEstoque, setValorEstoque] = useState(0);
+  const [contasPendentes, setContasPendentes] = useState(0);
+  const [contasAtrasadas, setContasAtrasadas] = useState(0);
+  const [contasHoje, setContasHoje] = useState(0);
   const [statusResumo, setStatusResumo] = useState<Record<string, number>>({});
+  const [funcao, setFuncao] = useState("Tecnico");
+  const [email, setEmail] = useState("");
 
   async function carregarDados() {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const emailUsuario = sessionData.session?.user.email?.trim().toUpperCase();
+
+    setEmail(emailUsuario || "");
+
+    let funcaoUsuario = "Tecnico";
+
+    if (emailUsuario) {
+      const { data: usuario } = await supabase
+        .from("usuarios")
+        .select("funcao")
+        .ilike("email", emailUsuario)
+        .maybeSingle();
+
+      if (usuario?.funcao) {
+        funcaoUsuario = String(usuario.funcao).trim();
+      }
+    }
+
+    setFuncao(funcaoUsuario);
+
     const { count: totalClientes } = await supabase
       .from("clientes")
       .select("*", { count: "exact", head: true });
@@ -49,31 +84,16 @@ export default function Dashboard() {
       .from("estoque")
       .select("quantidade, valor_custo");
 
+    const { data: listaContas } = await supabase
+      .from("contas_pagar")
+      .select("valor, vencimento, status");
+
     const ordensLista = (listaOrdens as Ordem[]) || [];
     const caixaLista = (listaCaixa as Caixa[]) || [];
     const estoqueLista = (listaEstoque as Produto[]) || [];
+    const contasLista = (listaContas as ContaPagar[]) || [];
 
-    const baixo =
-      estoqueLista.filter((produto) => Number(produto.quantidade || 0) <= 2)
-        .length || 0;
-
-    const totalQuantidade = estoqueLista.reduce(
-      (total, produto) => total + Number(produto.quantidade || 0),
-      0
-    );
-
-    const totalValorEstoque = estoqueLista.reduce(
-      (total, produto) =>
-        total +
-        Number(produto.quantidade || 0) * Number(produto.valor_custo || 0),
-      0
-    );
-
-    setClientes(totalClientes || 0);
-    setOrdens(ordensLista.length);
-    setEstoqueBaixo(baixo);
-    setTotalPecas(totalQuantidade);
-    setValorEstoque(totalValorEstoque);
+    const hoje = new Date().toISOString().split("T")[0];
 
     const abertas = ordensLista.filter(
       (os) => os.status !== "Entregue" && os.status !== "Finalizado"
@@ -83,13 +103,16 @@ export default function Dashboard() {
       (os) => os.status === "Entregue" || os.status === "Finalizado"
     ).length;
 
-    const faturamento = ordensLista.reduce((total, os) => {
-      return total + Number(os.valor_final || 0);
-    }, 0);
+    const faturamento = ordensLista.reduce(
+      (total, os) => total + Number(os.valor_final || 0),
+      0
+    );
 
-    const lucro = ordensLista.reduce((total, os) => {
-      return total + (Number(os.valor_final || 0) - Number(os.custo_pecas || 0));
-    }, 0);
+    const lucro = ordensLista.reduce(
+      (total, os) =>
+        total + (Number(os.valor_final || 0) - Number(os.custo_pecas || 0)),
+      0
+    );
 
     const entradas = caixaLista
       .filter((mov) => mov.tipo === "Entrada")
@@ -106,108 +129,163 @@ export default function Dashboard() {
       resumo[status] = (resumo[status] || 0) + 1;
     });
 
+    setClientes(totalClientes || 0);
+    setOrdens(ordensLista.length);
     setOsAbertas(abertas);
     setOsEntregues(entregues);
+    setEstoqueBaixo(
+      estoqueLista.filter((produto) => Number(produto.quantidade || 0) <= 2)
+        .length
+    );
+    setTotalPecas(
+      estoqueLista.reduce(
+        (total, produto) => total + Number(produto.quantidade || 0),
+        0
+      )
+    );
+    setValorEstoque(
+      estoqueLista.reduce(
+        (total, produto) =>
+          total +
+          Number(produto.quantidade || 0) * Number(produto.valor_custo || 0),
+        0
+      )
+    );
     setFaturamentoTotal(faturamento);
     setLucroTotal(lucro);
     setSaldoCaixa(entradas - saidas);
+    setContasPendentes(
+      contasLista
+        .filter((conta) => conta.status === "Pendente")
+        .reduce((total, conta) => total + Number(conta.valor || 0), 0)
+    );
+    setContasAtrasadas(
+      contasLista.filter(
+        (conta) => conta.status === "Pendente" && conta.vencimento < hoje
+      ).length
+    );
+    setContasHoje(
+      contasLista.filter(
+        (conta) => conta.status === "Pendente" && conta.vencimento === hoje
+      ).length
+    );
     setStatusResumo(resumo);
   }
 
+  async function sair() {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  }
+
   useEffect(() => {
-    carregarDados();
+    async function verificarLogin() {
+      const { data } = await supabase.auth.getSession();
+
+      if (!data.session) {
+        window.location.href = "/login";
+        return;
+      }
+
+      carregarDados();
+    }
+
+    verificarLogin();
   }, []);
 
   const maiorValor = Math.max(faturamentoTotal, lucroTotal, saldoCaixa, 1);
   const maiorStatus = Math.max(...Object.values(statusResumo), 1);
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "transparent",
-        color: "#fff",
-        padding: "30px",
-      }}
-    >
-      <h1 style={{ color: "#22c55e" }}>JD CELL</h1>
-      <h2>Dashboard Financeiro</h2>
-
-      <div style={gridCards}>
-        <div style={card}>
-          <h3>Clientes</h3>
-          <strong style={numero}>{clientes}</strong>
+    <AppLayout funcao={funcao} titulo="Dashboard JD CELL PRO">
+      <section style={hero}>
+        <div>
+          <p style={tag}>JD CELL PRO 2.0</p>
+          <h1 style={titulo}>Painel de Controle</h1>
+          <p style={subtitulo}>
+            Usuário: {email || "Logado"} • Função: <strong>{funcao}</strong>
+          </p>
         </div>
 
-        <div style={card}>
-          <h3>Total de OS</h3>
-          <strong style={numero}>{ordens}</strong>
+        <div style={resumoHero}>
+          <strong>{ordens}</strong>
+          <span>OS cadastradas</span>
         </div>
+      </section>
 
-        <div style={card}>
-          <h3>OS Abertas</h3>
-          <strong style={numero}>{osAbertas}</strong>
-        </div>
+      <section style={gridCards}>
+        <CardResumo titulo="Clientes" valor={clientes} icone="👥" />
+        <CardResumo titulo="Total de OS" valor={ordens} icone="📱" />
+        <CardResumo titulo="OS Abertas" valor={osAbertas} icone="🔧" />
+        <CardResumo titulo="OS Finalizadas" valor={osEntregues} icone="✅" />
 
-        <div style={card}>
-          <h3>OS Finalizadas</h3>
-          <strong style={numero}>{osEntregues}</strong>
-        </div>
+        <CardResumo
+          titulo="Contas Pendentes"
+          valor={`R$ ${contasPendentes.toFixed(2)}`}
+          icone="💰"
+          destaque
+        />
 
-        <div
-          style={{
-            background:
-              estoqueBaixo > 0
-                ? "rgba(127, 29, 29, 0.92)"
-                : "rgba(30, 41, 59, 0.92)",
-            padding: "20px",
-            borderRadius: "12px",
-            cursor: "pointer",
-          }}
-          onClick={() => (window.location.href = "/estoque")}
-        >
-          <h3>⚠️ Estoque Baixo</h3>
-          <strong style={numero}>{estoqueBaixo} produtos</strong>
-        </div>
+        <CardResumo
+          titulo="Contas Atrasadas"
+          valor={contasAtrasadas}
+          icone="⚠️"
+          alerta={contasAtrasadas > 0}
+        />
 
-        <div style={card}>
-          <h3>Total de Peças</h3>
-          <strong style={numero}>{totalPecas}</strong>
-        </div>
+        <CardResumo titulo="Vencendo Hoje" valor={contasHoje} icone="📅" />
 
-        <div style={cardDestaque}>
-          <h3>Valor em Estoque</h3>
-          <strong style={numero}>R$ {valorEstoque.toFixed(2)}</strong>
-        </div>
+        <CardResumo
+          titulo="Estoque Baixo"
+          valor={`${estoqueBaixo} produtos`}
+          icone="📦"
+          alerta={estoqueBaixo > 0}
+        />
 
-        <div style={cardDestaque}>
-          <h3>Faturamento Total</h3>
-          <strong style={numero}>R$ {faturamentoTotal.toFixed(2)}</strong>
-        </div>
+        <CardResumo titulo="Total de Peças" valor={totalPecas} icone="🧩" />
 
-        <div style={cardDestaque}>
-          <h3>Lucro Total</h3>
-          <strong style={numero}>R$ {lucroTotal.toFixed(2)}</strong>
-        </div>
+        <CardResumo
+          titulo="Valor em Estoque"
+          valor={`R$ ${valorEstoque.toFixed(2)}`}
+          icone="🏷️"
+          destaque
+        />
 
-        <div style={cardDestaque}>
-          <h3>Saldo do Caixa</h3>
-          <strong style={numero}>R$ {saldoCaixa.toFixed(2)}</strong>
-        </div>
-      </div>
+        <CardResumo
+          titulo="Faturamento Total"
+          valor={`R$ ${faturamentoTotal.toFixed(2)}`}
+          icone="📈"
+          destaque
+        />
 
-      <div style={gridGraficos}>
+        <CardResumo
+          titulo="Lucro Total"
+          valor={`R$ ${lucroTotal.toFixed(2)}`}
+          icone="💵"
+          destaque
+        />
+
+        <CardResumo
+          titulo="Saldo do Caixa"
+          valor={`R$ ${saldoCaixa.toFixed(2)}`}
+          icone="🏦"
+          destaque
+        />
+      </section>
+
+      <section style={blocoMenu}>
+        <h2 style={secaoTitulo}>Menu Rápido</h2>
+        <MenuDashboard funcao={funcao} sair={sair} />
+      </section>
+
+      <section style={gridGraficos}>
         <div style={cardGrafico}>
           <h3>Gráfico Financeiro</h3>
-
           <Barra
             titulo="Faturamento"
             valor={faturamentoTotal}
             maiorValor={maiorValor}
           />
-
           <Barra titulo="Lucro" valor={lucroTotal} maiorValor={maiorValor} />
-
           <Barra titulo="Caixa" valor={saldoCaixa} maiorValor={maiorValor} />
         </div>
 
@@ -236,36 +314,8 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
-      </div>
-
-      <div style={{ marginTop: "30px" }}>
-        <button onClick={() => (window.location.href = "/clientes")} style={botao}>
-          Clientes
-        </button>
-
-        <button
-          onClick={() => (window.location.href = "/ordens-servico")}
-          style={botao}
-        >
-          Ordens de Serviço
-        </button>
-
-        <button onClick={() => (window.location.href = "/estoque")} style={botao}>
-          Estoque
-        </button>
-
-        <button onClick={() => (window.location.href = "/caixa")} style={botao}>
-          Caixa
-        </button>
-
-        <button
-          onClick={() => (window.location.href = "/relatorios")}
-          style={botao}
-        >
-          Relatórios
-        </button>
-      </div>
-    </main>
+      </section>
+    </AppLayout>
   );
 }
 
@@ -297,11 +347,68 @@ function Barra({
   );
 }
 
+const hero = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "20px",
+  background: "linear-gradient(135deg, rgba(15,23,42,.98), rgba(30,41,59,.96))",
+  padding: "28px",
+  borderRadius: "24px",
+  border: "1px solid rgba(148,163,184,.22)",
+  boxShadow: "0 14px 32px rgba(0,0,0,.28)",
+};
+
+const tag = {
+  margin: 0,
+  color: "#22c55e",
+  fontWeight: "bold",
+  letterSpacing: "1px",
+};
+
+const titulo = {
+  margin: "8px 0 6px 0",
+  fontSize: "38px",
+  color: "#fff",
+};
+
+const subtitulo = {
+  margin: 0,
+  color: "#cbd5e1",
+};
+
+const resumoHero = {
+  minWidth: "150px",
+  textAlign: "center" as const,
+  background: "rgba(34,197,94,.12)",
+  border: "1px solid rgba(34,197,94,.35)",
+  borderRadius: "20px",
+  padding: "18px",
+  color: "#22c55e",
+  display: "flex",
+  flexDirection: "column" as const,
+  gap: "4px",
+  fontSize: "14px",
+};
+
 const gridCards = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-  gap: "15px",
+  gap: "16px",
+  marginTop: "26px",
+};
+
+const blocoMenu = {
   marginTop: "30px",
+  background: "rgba(15,23,42,.72)",
+  border: "1px solid rgba(148,163,184,.18)",
+  borderRadius: "22px",
+  padding: "22px",
+};
+
+const secaoTitulo = {
+  margin: 0,
+  color: "#22c55e",
 };
 
 const gridGraficos = {
@@ -311,38 +418,11 @@ const gridGraficos = {
   marginTop: "30px",
 };
 
-const card = {
-  background: "rgba(30, 41, 59, 0.92)",
-  padding: "20px",
-  borderRadius: "12px",
-};
-
-const cardDestaque = {
-  background: "rgba(6, 78, 59, 0.85)",
-  padding: "20px",
-  borderRadius: "12px",
-};
-
 const cardGrafico = {
   background: "rgba(30, 41, 59, 0.92)",
-  padding: "20px",
-  borderRadius: "12px",
-};
-
-const numero = {
-  fontSize: "32px",
-  color: "#22c55e",
-};
-
-const botao = {
-  background: "#22c55e",
-  color: "#fff",
-  border: "none",
-  padding: "12px 18px",
-  borderRadius: "8px",
-  cursor: "pointer",
-  marginRight: "10px",
-  marginBottom: "10px",
+  padding: "22px",
+  borderRadius: "18px",
+  border: "1px solid rgba(148,163,184,.18)",
 };
 
 const linhaGrafico = {
