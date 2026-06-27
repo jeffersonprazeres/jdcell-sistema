@@ -14,17 +14,18 @@ export default function AppLayout({ funcao, titulo, children }: AppLayoutProps) 
         minHeight: "100vh",
         background: "#0f172a",
         color: "#fff",
-        display: "flex",
       }}
     >
       <Sidebar funcao={funcao} />
 
       <main
         style={{
-          marginLeft: "240px",
-          width: "calc(100% - 240px)",
           padding: "30px",
+          paddingLeft: "280px",
           boxSizing: "border-box",
+          width: "100%",
+          maxWidth: "100vw",
+          overflowX: "hidden",
         }}
       >
         <h1
@@ -36,7 +37,15 @@ export default function AppLayout({ funcao, titulo, children }: AppLayoutProps) 
           {titulo}
         </h1>
 
-        {children}
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "1180px",
+            margin: "0 auto",
+          }}
+        >
+          {children}
+        </div>
       </main>
     </div>
   );
