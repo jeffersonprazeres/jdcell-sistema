@@ -21,7 +21,7 @@ export default function AppLayout({ funcao, titulo, children }: AppLayoutProps) 
       <main
         style={{
           padding: "30px",
-          paddingLeft: "280px",
+          paddingLeft: "240px",
           boxSizing: "border-box",
           width: "100%",
           maxWidth: "100vw",

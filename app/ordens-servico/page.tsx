@@ -336,34 +336,54 @@ export default function OrdensServico() {
   }
 
   async function atualizarStatusOS(ordem: OrdemServico, novoStatus: string) {
-    const statusAnterior = ordem.status;
+  const statusAnterior = ordem.status;
 
-    const dadosAtualizacao: any = {
-      status: novoStatus,
-    };
+  const dadosAtualizacao: any = {
+    status: novoStatus,
+  };
 
-    if (novoStatus === "Entregue" && ordem.status !== "Entregue") {
-      dadosAtualizacao.data_entrega = new Date().toISOString();
-      dadosAtualizacao.garantia_dias = 90;
-    }
-
-    const { error } = await supabase
-      .from("ordens_servico")
-      .update(dadosAtualizacao)
-      .eq("id", ordem.id);
-
-    if (error) {
-      alert("Erro ao atualizar status: " + error.message);
-      return;
-    }
-
-    if (novoStatus === "Entregue" && statusAnterior !== "Entregue") {
-      await baixarEstoqueDaOS(ordem);
-    }
-
-    alert("Status atualizado com sucesso!");
-    carregarOrdens();
+  if (novoStatus === "Entregue" && ordem.status !== "Entregue") {
+    dadosAtualizacao.data_entrega = new Date().toISOString();
+    dadosAtualizacao.garantia_dias = 90;
   }
+
+  const { error } = await supabase
+    .from("ordens_servico")
+    .update(dadosAtualizacao)
+    .eq("id", ordem.id);
+
+  if (error) {
+    alert("Erro ao atualizar status: " + error.message);
+    return;
+  }
+
+  // NOVO: grava histórico da OS
+  const { data, error: erroHistorico } = await supabase
+  .from("historico_os")
+  .insert({
+    ordem_id: ordem.id,
+    numero_os: ordem.numero_os,
+    status_anterior: statusAnterior,
+    status_novo: novoStatus,
+    usuario: ordem.tecnico || "Sistema JD CELL",
+    observacao: `Status alterado de ${statusAnterior} para ${novoStatus}`,
+  })
+  .select();
+
+console.log("Histórico:", data);
+console.log("Erro histórico:", erroHistorico);
+
+if (erroHistorico) {
+  alert("Erro ao gravar histórico: " + erroHistorico.message);
+}
+
+  if (novoStatus === "Entregue" && statusAnterior !== "Entregue") {
+    await baixarEstoqueDaOS(ordem);
+  }
+
+  alert("Status atualizado com sucesso!");
+  carregarOrdens();
+}
 
   function abrirWhatsApp(
     telefone: string,
@@ -1015,7 +1035,6 @@ Qualquer dúvida estamos à disposição.`);
                   );
 
                   if (!confirmar) return;
-
                   const { error } = await supabase
                     .from("ordens_servico")
                     .delete()
