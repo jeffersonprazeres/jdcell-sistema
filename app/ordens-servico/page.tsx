@@ -370,13 +370,12 @@ export default function OrdensServico() {
   })
   .select();
 
-console.log("Histórico:", data);
+console.log("Histórico salvo:", data);
 console.log("Erro histórico:", erroHistorico);
 
 if (erroHistorico) {
   alert("Erro ao gravar histórico: " + erroHistorico.message);
 }
-
   if (novoStatus === "Entregue" && statusAnterior !== "Entregue") {
     await baixarEstoqueDaOS(ordem);
   }
