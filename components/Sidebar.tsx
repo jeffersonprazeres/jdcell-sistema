@@ -21,48 +21,15 @@ export default function Sidebar({ funcao }: SidebarProps) {
     if (!mostrar) return null;
 
     return (
-      <button
-        onClick={() => (window.location.href = rota)}
-        style={{
-          width: "100%",
-          padding: "12px",
-          marginBottom: "10px",
-          background: "#182235",
-          border: "1px solid #2b3a55",
-          color: "#fff",
-          borderRadius: "10px",
-          cursor: "pointer",
-          textAlign: "left",
-          fontSize: "15px",
-        }}
-      >
+      <button onClick={() => (window.location.href = rota)} style={botao}>
         {texto}
       </button>
     );
   };
 
   return (
-    <aside
-      style={{
-        position: "fixed",
-        left: 0,
-        top: 0,
-        width: "220px",
-        height: "100vh",
-        background: "#0f172a",
-        borderRight: "1px solid #22c55e",
-        padding: "20px",
-        boxSizing: "border-box",
-      }}
-    >
-      <h2
-        style={{
-          color: "#22c55e",
-          marginBottom: "30px",
-        }}
-      >
-        JD CELL
-      </h2>
+    <aside style={sidebar}>
+      <h2 style={logo}>JD CELL</h2>
 
       <Item texto="Dashboard" rota="/dashboard" />
       <Item texto="Clientes" rota="/clientes" mostrar={admin || atendente} />
@@ -76,3 +43,32 @@ export default function Sidebar({ funcao }: SidebarProps) {
     </aside>
   );
 }
+
+const sidebar = {
+  width: "210px",
+  minWidth: "210px",
+  minHeight: "100vh",
+  background: "#0f172a",
+  borderRight: "1px solid #22c55e",
+  padding: "18px",
+  boxSizing: "border-box" as const,
+};
+
+const logo = {
+  color: "#22c55e",
+  marginBottom: "28px",
+  fontSize: "24px",
+};
+
+const botao = {
+  width: "100%",
+  background: "#111827",
+  color: "#fff",
+  border: "1px solid #334155",
+  padding: "11px",
+  borderRadius: "10px",
+  cursor: "pointer",
+  marginBottom: "10px",
+  textAlign: "left" as const,
+  fontWeight: "bold",
+};
